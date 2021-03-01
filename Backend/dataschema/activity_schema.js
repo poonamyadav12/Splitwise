@@ -11,12 +11,22 @@ export const ActivityType = Object.freeze({
 
 export const activitySchema = Joi.object().keys(
     {
-        from: Joi.string().email().required(),
-        to: Joi.array().items(Joi.string().email()).min(1).required(),
-        amount: Joi.number().required(),
-        currency_code: Joi.string().max(3),
+        user_id: Joi.string().email().required(),
         group_id: Joi.string().required(),
-        description: Joi.string().required(),
         type: Joi.string().valid(ActivityType.values()).required(),
     }
 );
+
+const groupCreationSchema = Joi.object().keys(
+    {
+        group_id: Joi.string().required(),
+        name: Joi.string().required(),
+    }
+);
+
+const tnxAddedSchema = Joi.object().keys(
+    {
+        group_id: Joi.string().required(),
+
+    }
+)
