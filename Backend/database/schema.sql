@@ -22,7 +22,7 @@ CREATE TABLE Activities(
     Activity JSON,
     ActivityId VARCHAR(50) GENERATED ALWAYS AS (Activity->"$.id") NOT NULL,
     UserId VARCHAR(50) GENERATED ALWAYS AS (Activity->"$.user_id") NOT NULL,
-    GroupId VARCHAR(50) GENERATED ALWAYS AS (Activity->"$.group_id"),
+    GroupId VARCHAR(50) GENERATED ALWAYS AS (Activity->>"$.group.id"),
     INDEX ActivityByUserId(UserId),
     INDEX ActivityByGroupId(GroupId)
 );

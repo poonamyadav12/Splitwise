@@ -1,5 +1,7 @@
 import { connection, getConnection, getPool } from '../database/mysql.js';
+import { ActivityType } from '../dataschema/activity_schema.js';
 import { groupschema } from '../dataschema/group_schema.js';
+import { insertActivity } from './activity_api.js';
 import { getTransactionsByGroupId } from './transactions_api.js';
 import { insertIfNotExist, getUserById } from './user_api.js';
 var Joi = require('joi');
@@ -28,6 +30,8 @@ export async function createGroup(req, res) {
         await conn.query(stmt, [JSON.stringify(modifiedGroup)]);
         await Promise.all(group.members.map((member) =>
             insertIfNotExist(conn, member)));
+        await insertActivity(conn, buildGroupCreatedActivity(group.creator, group));
+        await Promise.all(group.members.map((member) => insertActivity(conn, buildMemberAddedActivity(group.creator, group, member))));
 
         await conn.commit();
 
@@ -163,4 +167,30 @@ async function getGroupsByUserId(conn, userId) {
         return JSON.parse(JSON.stringify(result)).map((value) => JSON.parse(value.GroupInfo));
     }
     return [];
+}
+
+function buildMemberAddedActivity(creator, group, member) {
+    return JSON.parse(JSON.stringify({
+        user_id: creator,
+        group: {
+            id: group.id,
+            name: group.name
+        },
+        added: {
+            email: member.email,
+            name: member.name,
+        },
+        type: ActivityType.MEMBER_ADDED
+    }));
+}
+
+function buildGroupCreatedActivity(creator, group) {
+    return JSON.parse(JSON.stringify({
+        user_id: creator,
+        group: {
+            id: group.id,
+            name: group.name
+        },
+        type: ActivityType.GROUP_CREATION
+    }));
 }

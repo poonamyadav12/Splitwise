@@ -3,6 +3,7 @@ var Joi = require('joi');
 
 const { DB_USERNAME, DB_PASSWORD, DB_NAME, CLOUD_SQL_CONNECTION_NAME } = require("../database/constants");
 import { connection } from '../database/mysql.js';
+import { ActivityType } from '../dataschema/activity_schema.js';
 import { RegistrationStatus, userschema } from '../dataschema/user_schema.js';
 
 export async function createUser(req, res) {
@@ -126,6 +127,3 @@ function isUserInvited(user) {
     console.log("isUserInvited: " + JSON.parse(user).registration_status);
     return (JSON.parse(user).registration_status === RegistrationStatus.INVITED);
 }
-
-
-
