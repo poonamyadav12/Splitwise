@@ -8,14 +8,14 @@ export const RegistrationStatus = Object.freeze({
 
 export const userschema = Joi.object().keys(
     {
-        password: passwordComplexity().required(),
-        first_name: Joi.string().alphanum().min(3).max(50).required(),
+        first_name: Joi.string().alphanum().min(3).max(50).required().label('First name'),
         last_name: Joi.string().alphanum().min(3).max(50).optional(),
         picture: Joi.string().uri().optional(),
-        email: Joi.string().email().required(),
+        email: Joi.string().email().required().label('Email'),
         id: Joi.ref('email'),
         country_code: Joi.string().max(5),
-        default_currency: Joi.string().min(3).max(3).required(),
+        default_currency: Joi.string().min(3).max(3).required().label('Default currency'),
+        password: passwordComplexity(undefined, "password").required().label('password'),
         registration_status: Joi.string().default(RegistrationStatus.JOINED)
     }
 );

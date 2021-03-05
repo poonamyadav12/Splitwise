@@ -13,7 +13,7 @@ export async function createUser(req, res) {
     ).validate(req.body);
 
     if (error) {
-        res.send(error.details);
+        res.status(400).send(error.details);
         return;
     }
 
@@ -30,6 +30,7 @@ export async function createUser(req, res) {
         } else {
             await insertUser(conn, user);
         }
+
     } catch (err) {
         console.log(err);
         res.status(500)
@@ -42,19 +43,19 @@ export async function createUser(req, res) {
     } finally {
         conn && conn.release();
     }
-    res.status(200).send(value).end();
+    res.status(200).cookie('cookie', user.email, { maxAge: 900000, httpOnly: false, path: '/' }).send(user.email).end();
 }
 
 export async function validateLogin(req, res) {
     console.log("Inside Login Post Request");
     const { error, value } = Joi.object().keys(
         {
-            id: Joi.string().email().required(),
+            id: Joi.string().required(),
             password: Joi.string().required(),
         }
     ).validate(req.body);
     if (error) {
-        res.send(error.details);
+        res.status(400).send(error.details);
         return;
     }
 
@@ -67,7 +68,8 @@ export async function validateLogin(req, res) {
 
         const user = await getUserByIdAndPassword(conn, id, password);
         if (user) {
-            res.status(200).send(value).end();
+            res.status(200).cookie('cookie', id, { maxAge: 900000, httpOnly: false, path: '/' }).send(user).end();
+
             return;
         }
         res.status(400).send({ code: 'INVALID_LOGIN', msg: 'UserId and password does not exists.' }).end();
