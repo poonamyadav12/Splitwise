@@ -1,4 +1,4 @@
-import { alertConstants } from '/home/poonam/Documents/Splitwise-app/splitwise-app/Frontend/src/_constants';
+import { alertConstants } from '../_constants';
 
 export const alertActions = {
     success,

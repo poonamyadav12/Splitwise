@@ -20,10 +20,10 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
 import App from './App';
-import registerServiceWorker from '/home/poonam/Documents/Splitwise-app/splitwise-app/Frontend/src/registerserviceworker.js';
+import registerServiceWorker from './registerserviceworker.js';
 import 'bootstrap/dist/css/bootstrap.css';
 import 'bootstrap/dist/css/bootstrap-theme.css';
-import { store } from '/home/poonam/Documents/Splitwise-app/splitwise-app/Frontend/src/_helper';
+import { store } from './_helper';
 import { Provider } from 'react-redux';
 
 //render App component on the root element

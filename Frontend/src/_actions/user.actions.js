@@ -2,7 +2,7 @@ import { userConstants } from '../_constants';
 import { alertActions } from './';
 import axios from 'axios';
 import cookie from 'react-cookies';
-import { history } from '/home/poonam/Documents/Splitwise-app/splitwise-app/Frontend/src/_helper/history.js';
+import { history } from '../_helper/history.js';
 
 export const userActions = {
     login,

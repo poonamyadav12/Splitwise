@@ -3,7 +3,7 @@ import '../../App.css';
 import { Redirect } from 'react-router';
 import { connect } from 'react-redux';
 
-import { userActions } from '/home/poonam/Documents/Splitwise-app/splitwise-app/Frontend/src/_actions';
+import { userActions } from '../../_actions';
 import { Row, Container, Col, Card, Form, Button } from 'react-bootstrap';
 
 

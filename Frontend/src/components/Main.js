@@ -6,7 +6,7 @@ import Delete from './Delete/Delete';
 import Create from './Create/Create';
 import { Navbar } from './LandingPage/Navbar';
 import Groups from './Groups/AddGroup';
-import { Signup } from './Signup.js/Signup';
+import { Signup } from './Signup/Signup';
 import { connect } from 'react-redux';
 import { alertActions } from '../_actions';
 import { Alert, Button, Container } from 'react-bootstrap';
