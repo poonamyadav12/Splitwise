@@ -5,7 +5,7 @@ import cookie from 'react-cookies';
 import { Redirect } from 'react-router';
 import { FaTag } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
-import { ListGroup, Card } from 'react-bootstrap';
+import { ListGroup, Card, Button } from 'react-bootstrap';
 
 export class GroupList extends Component {
 
@@ -15,7 +15,7 @@ export class GroupList extends Component {
     }
 
     componentDidMount() {
-        axios.get('http://localhost:3001/user/groups/' + this.props.userId)
+        axios.get('http://localhost:3001/user/groups?userId=' + this.props.userId)
             .then((response) => {
                 //update the state with the response data
                 this.setState({
@@ -26,14 +26,15 @@ export class GroupList extends Component {
 
     render() {
         return <Card style={{ width: '15rem' }}>
-            <ListGroup variant="flush">
-                <ListGroup.Item><GroupName groupName="First Group" groupId="123" /></ListGroup.Item>
-                <ListGroup.Item><GroupName groupName="Second Group" groupId="123" /></ListGroup.Item>
-                <ListGroup.Item><GroupName groupName="Third Group" groupId="123" /></ListGroup.Item>
-                <ListGroup.Item><GroupName groupName="Fourth Group" groupId="123" /></ListGroup.Item>
-            </ListGroup>
+            {this.state.groups.length > 0 ?
+                <ListGroup variant="flush">
+                    {this.state.groups.map((group) =>
+                        <ListGroup.Item key={group.id}><GroupName groupName={group.name} groupId={group.id} setGroupView={this.props.setGroupView} /></ListGroup.Item>
+                    )}
+                </ListGroup> : "No Groups to show"
+            }
         </Card>;
     }
 }
 
-const GroupName = (props) => <div><FaTag />&nbsp;<Link to={"/groupPreview" + props.groupId}>{props.groupName}</Link></div>
+const GroupName = (props) => <Link to="#" onClick={() => props.setGroupView(props.groupId)} ><FaTag />&nbsp;{props.groupName}</Link>

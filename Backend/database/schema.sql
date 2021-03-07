@@ -1,18 +1,18 @@
-DROP DATABASE SplitwiseDb;
+-- DROP DATABASE SplitwiseDb;
 
-CREATE DATABASE SplitwiseDb;
+-- CREATE DATABASE SplitwiseDb;
 
-Use SplitwiseDb;
+ Use SplitwiseDb;
 
-CREATE TABLE Users(
-    User JSON,
-    UserId VARCHAR(50) GENERATED ALWAYS AS (User->>"$.email") NOT NULL,
-    CreatedAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    UpdatedAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    UNIQUE INDEX UserById(UserId)
-);
+-- CREATE TABLE Users(
+--     User JSON,
+--     UserId VARCHAR(50) GENERATED ALWAYS AS (User->>"$.email") NOT NULL,
+--     CreatedAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+--     UpdatedAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+--     UNIQUE INDEX UserById(UserId)
+-- );
 
-
+DROP TABLE Transactions;
 CREATE TABLE Transactions(
     TransactionInfo JSON,
     TransactionId VARCHAR(50) GENERATED ALWAYS AS (TransactionInfo->>"$.id") NOT NULL,
@@ -22,21 +22,21 @@ CREATE TABLE Transactions(
     UNIQUE INDEX TransactionById(TransactionId)
 );
 
-CREATE TABLE Activities(
-    Activity JSON,
-    ActivityId VARCHAR(50) GENERATED ALWAYS AS (Activity->"$.id") NOT NULL,
-    UserId VARCHAR(50) GENERATED ALWAYS AS (Activity->"$.user_id") NOT NULL,
-    GroupId VARCHAR(50) GENERATED ALWAYS AS (Activity->>"$.group.id"),
-    CreatedAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    UpdatedAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    INDEX ActivityByUserId(UserId),
-    INDEX ActivityByGroupId(GroupId)
-);
+-- CREATE TABLE Activities(
+--     Activity JSON,
+--     ActivityId VARCHAR(50) GENERATED ALWAYS AS (Activity->"$.id") NOT NULL,
+--     UserId VARCHAR(50) GENERATED ALWAYS AS (Activity->"$.user_id") NOT NULL,
+--     GroupId VARCHAR(50) GENERATED ALWAYS AS (Activity->>"$.group.id"),
+--     CreatedAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+--     UpdatedAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+--     INDEX ActivityByUserId(UserId),
+--     INDEX ActivityByGroupId(GroupId)
+-- );
 
-CREATE TABLE GroupInfos(
-    GroupInfo JSON,
-    GroupId VARCHAR(50) GENERATED ALWAYS AS (GroupInfo->>"$.id") NOT NULL,
-    CreatedAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    UpdatedAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    UNIQUE INDEX GroupById(GroupId)
-);
+-- CREATE TABLE GroupInfos(
+--     GroupInfo JSON,
+--     GroupId VARCHAR(50) GENERATED ALWAYS AS (GroupInfo->>"$.id") NOT NULL,
+--     CreatedAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+--     UpdatedAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+--     UNIQUE INDEX GroupById(GroupId)
+-- );

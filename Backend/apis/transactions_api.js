@@ -68,8 +68,8 @@ export async function getAllTransactionsForGroup(req, res) {
     let conn;
     try {
         conn = await connection();
-        const transactions = await getTransactionsByGroupId(conn, groupId);
-        console.log("Groups " + JSON.stringify(transactions));
+        const transactions = await getTransactionsByGroupIdV2(conn, groupId);
+        console.log("Transactions By Group ID  " + JSON.stringify(transactions));
 
         res.status(200).send(transactions).end();
     } catch (err) {
@@ -89,13 +89,56 @@ export async function getAllTransactionsForGroup(req, res) {
 }
 
 export async function getTransactionsByGroupId(conn, groupId) {
-    const stmt = 'SELECT TransactionInfo FROM Transactions WHERE JSON_EXTRACT(TransactionInfo, "$.group_id")=?';
+    const stmt = 'SELECT TransactionInfo, CreatedAt FROM Transactions WHERE JSON_EXTRACT(TransactionInfo, "$.group_id")=?';
     const result = await conn.query(stmt, [groupId]);
     console.log("Inside getTransactionsByGroupId " + JSON.stringify(result));
 
     console.log(JSON.stringify(result));
     if (result.length > 0) {
         return JSON.parse(JSON.stringify(result)).map((value) => JSON.parse(value.TransactionInfo));
+    }
+    return [];
+}
+
+export async function getTransactionsByGroupIdV2(conn, groupId) {
+    const stmt = '\
+    SELECT \
+        T.TransactionInfo, \
+        ( \
+            SELECT \
+                U1.User \
+            from \
+                Users U1 \
+            WHERE \
+                U1.UserId=(T.TransactionInfo ->> "$.from") \
+        ) AS FromUser, \
+        ( \
+            SELECT \
+                JSON_ARRAYAGG(U2.User) \
+            from \
+                Users U2 \
+            WHERE \
+                U2.UserId MEMBER OF(JSON_EXTRACT(T.TransactionInfo, "$.to")) \
+        ) AS ToUsers, \
+        T.CreatedAt, \
+        T.UpdatedAt \
+    FROM \
+        Transactions T \
+    WHERE \
+        JSON_EXTRACT(T.TransactionInfo, "$.group_id") = ?';
+
+    const result = await conn.query(stmt, [groupId]);
+    console.log("Inside getTransactionsByGroupId " + JSON.stringify(result));
+
+    console.log(JSON.stringify(result));
+    if (result.length > 0) {
+        return JSON.parse(JSON.stringify(result)).map((value) => {
+            const transaction = JSON.parse(value.TransactionInfo);
+            transaction.from = JSON.parse(value.FromUser);
+            transaction.to = JSON.parse(value.ToUsers);
+            transaction.createdAt = value.CreatedAt;
+            return transaction;
+        });
     }
     return [];
 }

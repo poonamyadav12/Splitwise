@@ -86,7 +86,7 @@ export async function getGroupDetails(req, res) {
             .send(
                 {
                     code: err.code,
-                    msg: 'Unable to successfully insert the Group! Please check the application logs for more details.'
+                    msg: 'Unable to successfully get the Group! Please check the application logs for more details.'
                 }
             )
             .end();

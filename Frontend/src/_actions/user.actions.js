@@ -24,9 +24,9 @@ function login(username, password) {
         axios.defaults.withCredentials = true;
         //make a post request with the user data
         try {
-            const user = await axios.post('http://localhost:3001/user/login', data);
+            const response = await axios.post('http://localhost:3001/user/login', data);
             history.push('/login');
-            dispatch(success(user));
+            dispatch(success(response.data));
         }
         catch (error) {
             console.log("Erro " + JSON.stringify(error));
@@ -37,7 +37,10 @@ function login(username, password) {
     };
 
     function request(user) { return { type: userConstants.LOGIN_REQUEST, user } }
-    function success(user) { return { type: userConstants.LOGIN_SUCCESS, user } }
+    function success(user) { 
+        localStorage.setItem("user", JSON.stringify(user));    
+        return { type: userConstants.LOGIN_SUCCESS, user } 
+    }
     function failure(error) { return { type: userConstants.LOGIN_FAILURE, error } }
 }
 
@@ -51,9 +54,9 @@ function register(data) {
     return async dispatch => {
         dispatch(request(data));
         try {
-            const user = await axios.post('http://localhost:3001/user/signup', data);
-            dispatch(success(user));
-            dispatch({ type: userConstants.LOGIN_SUCCESS, user })
+            const response = await axios.post('http://localhost:3001/user/signup', data);
+            dispatch(success(response.data));
+            dispatch({ type: userConstants.LOGIN_SUCCESS, user:response.data })
             history.push('/signup');
         } catch (error) {
             console.log("Error " + JSON.stringify(error));

@@ -6,190 +6,21 @@ import { Redirect } from 'react-router';
 import { FaTag } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 import { ListGroup, Card, Accordion, Button, Container, Row, Col } from 'react-bootstrap';
+import { connect } from 'react-redux';
 
 const userId = "ajay.yadav@gmail.com";
 
 export class TransactionView extends Component {
-
-    constructor(props) {
-        super(props);
-        this.state = { groups: [] };
-    }
-
     componentDidMount() {
-        axios.get('http://localhost:3001/user/groups/' + this.props.userId)
-            .then((response) => {
-                //update the state with the response data
-                this.setState({
-                    groups: response.data
-                });
-            });
+
     }
 
     render() {
-        return <Card fluid>
+        const uiTxns = this.props.transactions.map((txn) => convertToUiTransactionView(txn));
+        console.log("UI Txns " + uiTxns);
+        return <Card fluid={true}>
             <Accordion>
-                <ListGroup>
-                    <TransactionAccordian data={{
-                        description: "Food at Chat Bhavan 1", payerName: "you", paidAmount: "$1234", lentAmount: "$999",
-                        payees: [
-                            {
-                                name: "Adam",
-                                amount: "$333"
-                            },
-                            {
-                                name: "Alice",
-                                amount: "$333"
-                            },
-                            {
-                                name: "Bob",
-                                amount: "$222"
-                            },
-                            {
-                                name: "Adam",
-                                amount: "$111"
-                            },
-                        ]
-                    }} eventKey="0" />
-                </ListGroup>
-                <ListGroup>
-                    <TransactionAccordian data={{
-                        description: "Food at Chat Bhavan 2", payerName: "you", paidAmount: "$1234", lentAmount: "$999",
-                        payees: [
-                            {
-                                name: "Adam",
-                                amount: "$333"
-                            },
-                            {
-                                name: "Alice",
-                                amount: "$333"
-                            },
-                            {
-                                name: "Bob",
-                                amount: "$222"
-                            },
-                            {
-                                name: "Adam",
-                                amount: "$111"
-                            },
-                        ]
-                    }} eventKey="1" />
-                </ListGroup>
-                <ListGroup>
-                    <TransactionAccordian data={{
-                        description: "Food at Chat Bhavan 3", payerName: "you", paidAmount: "$1234", lentAmount: "$999",
-                        payees: [
-                            {
-                                name: "Adam",
-                                amount: "$333"
-                            },
-                            {
-                                name: "Alice",
-                                amount: "$333"
-                            },
-                            {
-                                name: "Bob",
-                                amount: "$222"
-                            },
-                            {
-                                name: "Adam",
-                                amount: "$111"
-                            },
-                        ]
-                    }} eventKey="2" />
-                </ListGroup>
-                <ListGroup>
-                    <TransactionAccordian data={{
-                        description: "Food at Chat Bhavan 4", payerName: "you", paidAmount: "$1234", lentAmount: "$999",
-                        payees: [
-                            {
-                                name: "Adam",
-                                amount: "$333"
-                            },
-                            {
-                                name: "Alice",
-                                amount: "$333"
-                            },
-                            {
-                                name: "Bob",
-                                amount: "$222"
-                            },
-                            {
-                                name: "Adam",
-                                amount: "$111"
-                            },
-                        ]
-                    }} eventKey="3" />
-                </ListGroup>
-                <ListGroup>
-                    <TransactionAccordian data={{
-                        description: "Food at Chat Bhavan 5", payerName: "you", paidAmount: "$1234", lentAmount: "$999",
-                        payees: [
-                            {
-                                name: "Adam",
-                                amount: "$333"
-                            },
-                            {
-                                name: "Alice",
-                                amount: "$333"
-                            },
-                            {
-                                name: "Bob",
-                                amount: "$222"
-                            },
-                            {
-                                name: "Adam",
-                                amount: "$111"
-                            },
-                        ]
-                    }} eventKey="5" />
-                </ListGroup>
-                <ListGroup>
-                    <TransactionAccordian data={{
-                        description: "Food at Chat Bhavan 6", payerName: "you", paidAmount: "$1234", lentAmount: "$999",
-                        payees: [
-                            {
-                                name: "Adam",
-                                amount: "$333"
-                            },
-                            {
-                                name: "Alice",
-                                amount: "$333"
-                            },
-                            {
-                                name: "Bob",
-                                amount: "$222"
-                            },
-                            {
-                                name: "Adam",
-                                amount: "$111"
-                            },
-                        ]
-                    }} eventKey="6" />
-                </ListGroup>
-                <ListGroup>
-                    <TransactionAccordian data={{
-                        description: "Food at Chat Bhavan 7", payerName: "Adam", paidAmount: "$5343", lentAmount: "$4322",
-                        payees: [
-                            {
-                                name: "you",
-                                amount: "$2323"
-                            },
-                            {
-                                name: "Alice",
-                                amount: "$2323"
-                            },
-                            {
-                                name: "Bob",
-                                amount: "$122"
-                            },
-                            {
-                                name: "Adam",
-                                amount: "$1223"
-                            },
-                        ]
-                    }} eventKey="7" />
-                </ListGroup>
+                {uiTxns.map((transaction) => (<ListGroup><TransactionAccordian transaction={transaction} /></ListGroup>))}
             </Accordion>
         </Card>;
     }
@@ -198,10 +29,10 @@ export class TransactionView extends Component {
 const TransactionAccordian = (props) => {
     return (
         <Card>
-            <TransactionHeader data={props.data} eventKey={props.eventKey} />
-            <Accordion.Collapse eventKey={props.eventKey}>
+            <TransactionHeader transaction={props.transaction} eventKey={props.transaction.id} />
+            <Accordion.Collapse eventKey={props.transaction.id}>
                 <Card.Body>
-                    <TransactionCardDetail data={props.data} />
+                    <TransactionCardDetail transaction={props.transaction} />
                 </Card.Body>
             </Accordion.Collapse>
         </Card>
@@ -215,37 +46,50 @@ const TransactionHeader = (props) => (
             <Container>
                 <Row>
                     <Col sm={4}>
-                        {props.data.description}
+                        {props.transaction.description}
                     </Col>
-                    <Col sm={4}><PayerTransactionBanner data={props.data} /></Col>
-                    <Col sm={4}><LentTransactionBanner data={props.data} /></Col>
+                    <Col sm={4}><ConnectedPayerTransactionBanner transaction={props.transaction} /></Col>
+                    <Col sm={4}><ConnectedLentTransactionBanner transaction={props.transaction} /></Col>
                 </Row>
             </Container>
         </Accordion.Toggle>
     </Card.Header>
 );
 
-const PayerTransactionBanner = (props) => (
-    <>
-        <div>{props.data.payerName}&nbsp;paid</div>
-        <div style={props.data.payerName === 'you' ? { color: 'green' } : { color: 'red' }}>{props.data.paidAmount}</div>
-    </>
-);
+class PayerTransactionBanner extends React.Component {
+    render() {
+        const userId = this.props.user.email;
+        const payerName = this.props.transaction.from.email === userId ? 'you' : this.props.transaction.from.first_name;
+        return (
+            <>
+                <div>{payerName}&nbsp;paid</div>
+                <div style={payerName === 'you' ? { color: 'green' } : { color: 'red' }}>{this.props.transaction.amount}</div>
+            </>
+        );
+    }
+}
 
-const LentTransactionBanner = (props) => (
-    <>
-        <div>{props.data.payerName}&nbsp;lent</div>
-        <div style={props.data.payerName === 'you' ? { color: 'green' } : { color: 'red' }}>{props.data.lentAmount}</div>
-    </>
-);
+class LentTransactionBanner extends React.Component {
+
+    render() {
+        const userId = this.props.user.email;
+        const payerName = this.props.transaction.from.email === userId ? 'you' : this.props.transaction.from.first_name;
+        return (
+            <>
+                <div>{payerName}&nbsp;lent</div>
+                <div style={payerName === 'you' ? { color: 'green' } : { color: 'red' }}>{this.props.transaction.lentAmount}</div>
+            </>
+        );
+    }
+}
 
 const TransactionCardHeader = (props) => (
     <>
         <div>
-            {props.data.description}
+            {props.transaction.description}
         </div>
         <div>
-            {props.data.amount}
+            {props.transaction.amount}
         </div>
         <hr
             style={{
@@ -258,17 +102,38 @@ const TransactionCardHeader = (props) => (
 );
 
 const TransactionCardDetail = (props) => {
-    const owesList = props.data.payees.map(payee => {
+    const owesList = props.transaction.to.map(payee => {
         return (
-            <ListGroup.Item>{payee.name}&nbsp;owes &nbsp; {payee.amount}</ListGroup.Item>
+            <ListGroup.Item>{payee.first_name}&nbsp;owes &nbsp; {payee.oweAmount}</ListGroup.Item>
         );
     });
 
 
     return (
         <ListGroup>
-            <ListGroup.Item>{props.data.payerName}&nbsp;paid {props.data.paidAmount}</ListGroup.Item>
+            <ListGroup.Item>{props.transaction.from.first_name}&nbsp;paid {props.transaction.amount}</ListGroup.Item>
             {owesList}
         </ListGroup>
     );
 }
+
+function convertToUiTransactionView(transaction) {
+    const amount = transaction.amount;
+    const totalpayees = transaction.to.length;
+
+    const amountPerMember = amount / (totalpayees + 1);
+    transaction.to = transaction.to.map((payee) => {
+        payee.oweAmount = amountPerMember;
+        return payee;
+    });
+    transaction.lentAmount = amount * totalpayees / (totalpayees + 1);
+    return transaction;
+}
+
+function mapState(state) {
+    const { user } = state.authentication;
+    return { user };
+}
+
+const ConnectedLentTransactionBanner = connect(mapState, {})(LentTransactionBanner);
+const ConnectedPayerTransactionBanner = connect(mapState, {})(PayerTransactionBanner);
