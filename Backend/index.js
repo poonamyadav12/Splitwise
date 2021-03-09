@@ -5,9 +5,9 @@ import { json, urlencoded } from 'body-parser';
 import session from 'express-session';
 //var cookieParser = require('cookie-parser');
 import cors from 'cors';
-import { createUser, validateLogin } from './apis/user_api';
+import { createUser, getUsersBySearchString, validateLogin } from './apis/user_api';
 import { createGroup, getAllGroupsForUser, getGroupDetails } from './apis/group_api';
-import { createTransaction, getAllTransactionsForGroup } from './apis/transactions_api';
+import { createTransaction, getAllTransactionsForFriend, getAllTransactionsForGroup } from './apis/transactions_api';
 
 app.set('view engine', 'ejs');
 
@@ -137,10 +137,6 @@ app.post('/delete', function (req, res) {
     res.end(JSON.stringify(books));
 })
 
-
-
-
-
 //Route to handle post request call of create book 
 app.get('/home', function (req, res) {
     console.log("Inside Home Login 34");
@@ -169,9 +165,13 @@ app.get('/group/transactions', getAllTransactionsForGroup);
 //Route to handle get group Request Call
 app.get('/user/groups', getAllGroupsForUser);
 
+app.get('/user/search',getUsersBySearchString);
 
 //Route to handle create group Request Call
 app.post('/transaction/create', createTransaction);
+
+app.get('/transaction/friend',getAllTransactionsForFriend);
+
 //Route to handle get group Request Call
 //app.get('/groups/transactions', );
 

@@ -6,17 +6,14 @@ import { v4 as uuidv4 } from 'uuid';
 var Joi = require('joi');
 
 export async function createTransaction(req, res) {
-
     console.log("Inside create txn post Request");
     const { error, value } = Joi.object().keys(
         { transaction: txnschema.required(), }
     ).validate(req.body);
-
     if (error) {
-        res.send(error.details);
+        res.status(400).send(error.details);
         return;
     }
-
     const transaction = value.transaction;
     console.log(JSON.stringify(transaction));
     const stmt = 'INSERT INTO Transactions (TransactionInfo) VALUES (?)';
@@ -101,6 +98,7 @@ export async function getTransactionsByGroupId(conn, groupId) {
 }
 
 export async function getTransactionsByGroupIdV2(conn, groupId) {
+
     const stmt = '\
     SELECT \
         T.TransactionInfo, \
@@ -141,4 +139,93 @@ export async function getTransactionsByGroupIdV2(conn, groupId) {
         });
     }
     return [];
+}
+
+export async function getAllTransactionsForFriend(req, res) {
+
+    // Access the provided 'page' and 'limt' query parameters
+    let friendId = req.query.friendId;
+    let userId = req.query.userId;
+    if (!friendId) {
+        res
+            .status(400)
+            .send(
+                {
+                    code: 'INVALID_PARAM',
+                    msg: 'Invalid friend ID'
+                }
+            )
+            .end();
+    }
+
+    console.log("Inside get friend Transaction Request");
+
+    let conn;
+    try {
+        conn = await connection();
+        const transactions = await getTransactionsByFriendId(conn, friendId, userId);
+        console.log("Transactions By friend ID  " + JSON.stringify(transactions));
+
+        res.status(200).send(transactions).end();
+    } catch (err) {
+        console.log(err);
+        res
+            .status(500)
+            .send(
+                {
+                    code: err.code,
+                    msg: 'Unable to successfully get the Friend Transaction! Please check the application logs for more details.'
+                }
+            )
+            .end();
+    } finally {
+        conn && conn.release();
+    }
+}
+
+
+export async function getTransactionsByFriendId(conn,friendId,userId) {
+    
+        const stmt = '    SELECT\
+        T.TransactionInfo,\
+        (\
+            SELECT\
+                U1.User\
+            from\
+                Users U1\
+            WHERE\
+                U1.UserId =(T.TransactionInfo ->> "$.from")\
+        ) AS FromUser,\
+        (\
+            SELECT\
+                JSON_ARRAYAGG(U2.User)\
+            from\
+                Users U2\
+            WHERE\
+                U2.UserId MEMBER OF(JSON_EXTRACT(T.TransactionInfo, "$.to"))\
+        ) AS ToUsers,\
+        T.CreatedAt,\
+        T.UpdatedAt\
+    FROM\
+        Transactions T\
+    WHERE\
+        JSON_EXTRACT(T.TransactionInfo, "$.from") = ? AND ? MEMBER OF\
+         (JSON_EXTRACT(T.TransactionInfo,"$.to")) OR (JSON_EXTRACT(T.TransactionInfo, "$.from") = ? AND ? MEMBER OF\
+         (JSON_EXTRACT(T.TransactionInfo,"$.to")))';
+
+        const result = await conn.query(stmt, [userId,friendId,friendId,userId]);
+        console.log("Inside getTransactionsByFriedId " + JSON.stringify(result));
+        console.log(JSON.stringify(result));
+       
+        if (result.length > 0) {
+            return JSON.parse(JSON.stringify(result)).map((value) => {
+                const transaction = JSON.parse(value.TransactionInfo);
+                transaction.from = JSON.parse(value.FromUser);
+                transaction.to = JSON.parse(value.ToUsers);
+                transaction.createdAt = value.CreatedAt;
+                return transaction;
+            });
+        }
+        
+        return [];
 }

@@ -18,9 +18,10 @@ export class TransactionView extends Component {
     render() {
         const uiTxns = this.props.transactions.map((txn) => convertToUiTransactionView(txn));
         console.log("UI Txns " + uiTxns);
-        return <Card fluid={true}>
+        if(uiTxns.length===0) return "No Transaction to show";
+        return <Card fluid='true'>
             <Accordion>
-                {uiTxns.map((transaction) => (<ListGroup><TransactionAccordian transaction={transaction} /></ListGroup>))}
+                {uiTxns.map((transaction) => (<ListGroup key={transaction.id}><TransactionAccordian transaction={transaction} /></ListGroup>))}
             </Accordion>
         </Card>;
     }
@@ -28,7 +29,7 @@ export class TransactionView extends Component {
 
 const TransactionAccordian = (props) => {
     return (
-        <Card>
+        <Card key={props.transaction.id}>
             <TransactionHeader transaction={props.transaction} eventKey={props.transaction.id} />
             <Accordion.Collapse eventKey={props.transaction.id}>
                 <Card.Body>
@@ -104,14 +105,12 @@ const TransactionCardHeader = (props) => (
 const TransactionCardDetail = (props) => {
     const owesList = props.transaction.to.map(payee => {
         return (
-            <ListGroup.Item>{payee.first_name}&nbsp;owes &nbsp; {payee.oweAmount}</ListGroup.Item>
+            <ListGroup.Item key={payee.first_name}>{payee.first_name}&nbsp;owes &nbsp; {payee.oweAmount}</ListGroup.Item>
         );
     });
-
-
     return (
         <ListGroup>
-            <ListGroup.Item>{props.transaction.from.first_name}&nbsp;paid {props.transaction.amount}</ListGroup.Item>
+            <ListGroup.Item key={props.transaction.from.first_name}>{props.transaction.from.first_name}&nbsp;paid {props.transaction.amount}</ListGroup.Item>
             {owesList}
         </ListGroup>
     );

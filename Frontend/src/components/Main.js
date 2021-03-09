@@ -10,6 +10,7 @@ import { Signup } from './Signup/Signup';
 import { connect } from 'react-redux';
 import { alertActions } from '../_actions';
 import { Alert, Button, Container } from 'react-bootstrap';
+import { AlertMessages } from './Alert/Alert';
 
 //Create a Main Component
 class Main extends Component {
@@ -49,14 +50,7 @@ const AlertBar = props => {
     const [show, setShow] = useState(true);
 
     if (show) {
-        return (
-            <Alert color='primary' variant="danger" onClose={() => setShow(false)} dismissible style={{ opacity: "unset" }}>
-                <Alert.Heading>Oh snap! You got an error!</Alert.Heading>
-                {props.messages.map(message => <p key="{message}">
-                    {message}
-                </p>)}
-            </Alert>
-        );
+        return <AlertMessages messages={props.messages} />;
     }
     return <Button variant="danger" onClick={() => setShow(true)}>Show Alert</Button>;
 }

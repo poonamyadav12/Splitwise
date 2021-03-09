@@ -21,20 +21,20 @@ class Navbar extends Component {
         return (
             <>
                 <div>
-                    <nav class="navbar navbar-inverse">
-                        <div class="container-fluid">
-                            <div class="navbar-header">
-                                <a href="#" class="navbar-brand">Splitwise App</a>
+                    <nav className="navbar navbar-inverse">
+                        <div className="container-fluid">
+                            <div className="navbar-header">
+                                <a href="#" className="navbar-brand">Splitwise App</a>
                             </div>
-                            <ul class="nav navbar-nav">
+                            <ul className="nav navbar-nav">
 
                             </ul>
-                            {!this.props.user && <ul class="nav navbar-nav navbar-right">
-                                <li><Link to="/signup" ><span class="glyphicon glyphicon-user"></span>Sign me Up</Link></li>
+                            {!this.props.user && <ul className="nav navbar-nav navbar-right">
+                                <li><Link to="/signup" ><span className="glyphicon glyphicon-user"></span>Sign me Up</Link></li>
                             </ul>}
-                            <ul class="nav navbar-nav navbar-right">
-                                {this.props.user ? <li><Link to="/login" onClick={this.handleLogout}><span class="glyphicon glyphicon-user"></span>Logout</Link></li> :
-                                    <li><Link to="/login"><span class="glyphicon glyphicon-log-in"></span> Login</Link></li>}
+                            <ul className="nav navbar-nav navbar-right">
+                                {this.props.user ? <li><Link to="/login" onClick={this.handleLogout}><span className="glyphicon glyphicon-user"></span>Logout</Link></li> :
+                                    <li><Link to="/login"><span className="glyphicon glyphicon-log-in"></span> Login</Link></li>}
                             </ul>
                         </div>
                     </nav>

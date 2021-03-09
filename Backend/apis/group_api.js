@@ -4,6 +4,7 @@ import { groupschema } from '../dataschema/group_schema.js';
 import { insertActivity } from './activity_api.js';
 import { getTransactionsByGroupId } from './transactions_api.js';
 import { insertIfNotExist, getUserById } from './user_api.js';
+import { v4 as uuidv4 } from 'uuid';
 var Joi = require('joi');
 
 export async function createGroup(req, res) {
@@ -26,7 +27,10 @@ export async function createGroup(req, res) {
         conn = await connection();
         await conn.beginTransaction();
         const modifiedGroup = JSON.parse(JSON.stringify(group));
+        modifiedGroup.id = uuidv4();
+        group.id = modifiedGroup.id;
         modifiedGroup.members = group.members.map((member) => member.email);
+        console.log("modified "+JSON.stringify(modifiedGroup));
         await conn.query(stmt, [JSON.stringify(modifiedGroup)]);
         await Promise.all(group.members.map((member) =>
             insertIfNotExist(conn, member)));

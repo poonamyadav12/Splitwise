@@ -95,6 +95,7 @@ async function updateUser(conn, user) {
 }
 
 export async function insertIfNotExist(conn, user) {
+    console.log("User id "+JSON.stringify(user));
     const id = user.email;
     const storedUser = await getUserById(conn, id);
     if (storedUser) {
@@ -128,4 +129,58 @@ async function getUserByIdAndPassword(conn, userId, password) {
 function isUserInvited(user) {
     console.log("isUserInvited: " + JSON.parse(user).registration_status);
     return (JSON.parse(user).registration_status === RegistrationStatus.INVITED);
+}
+
+export async function getUsersBySearchString(req, res) {
+    let searchString = req.query.queryString; 
+    console.log("Search String "+searchString);
+    let limit = req.query.limit;
+    let conn = null;
+    try{
+        conn = await connection();    
+    const users = await searchUsers(conn,searchString,limit);
+    console.log("Users" + JSON.stringify(users));
+    res.status(200).send(users).end();
+    }catch (err) {
+    console.log(err);
+    res
+        .status(500)
+        .send(
+            {
+                code: err.code,
+                msg: 'Unable to successfully get the search result! Please check the application logs for more details.'
+            }
+        )
+        .end();
+} finally {
+    conn && conn.release();
+}
+}
+
+async function searchUsers(conn, searchString="", limit = 20) {
+    console.log("string "+searchString);
+    const stmt = '\
+    SELECT\
+        User\
+    from\
+        Users\
+    WHERE\
+        SOUNDEX(?) LIKE SOUNDEX(\
+            CONCAT(\
+                (User ->> "$.first_name"),\
+                " ",\
+                IF(\
+                    (User ->> "$.last_name") IS NULL,\
+                    " ",\
+                    (User ->> "$.last_name")\
+                )\
+            )\
+        )\
+        LIMIT ? ';
+    const result = await conn.query(stmt, [searchString, limit]);
+    console.log(JSON.stringify(result));
+    if (result.length > 0) {
+        return JSON.parse(JSON.stringify(result)).map((value) => JSON.parse(value.User));
+    }
+    return [];
 }
