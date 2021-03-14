@@ -50,7 +50,9 @@ class DashboardView extends React.Component {
         <Container>
           <Row>
             <Col sm={4}>
+            <Card.Header>
               <h5>total balance ${calculatedDebt.totalAmount}</h5>
+            </Card.Header>
             </Col>
             <Col sm={4}>
               <h5>You owe ${calculatedDebt.oweAmount}</h5>
