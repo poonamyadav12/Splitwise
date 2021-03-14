@@ -7,7 +7,9 @@ import session from 'express-session';
 import cors from 'cors';
 import { createUser, getUsersBySearchString, validateLogin } from './apis/user_api';
 import { createGroup, getAllGroupsForUser, getGroupDetails } from './apis/group_api';
-import { createTransaction, getAllTransactionsForFriend, getAllTransactionsForGroup } from './apis/transactions_api';
+import { createTransaction, getAllTransactionsForFriend, getAllTransactionsForGroup, getAllTransactionsForUser, getTransactionsByUserId } from './apis/transactions_api';
+import { getActivities } from './apis/activity_api';
+import { uploadImage } from './apis/image_upload';
 
 app.set('view engine', 'ejs');
 
@@ -165,12 +167,18 @@ app.get('/group/transactions', getAllTransactionsForGroup);
 //Route to handle get group Request Call
 app.get('/user/groups', getAllGroupsForUser);
 
-app.get('/user/search',getUsersBySearchString);
+app.get('/user/search', getUsersBySearchString);
 
 //Route to handle create group Request Call
 app.post('/transaction/create', createTransaction);
 
-app.get('/transaction/friend',getAllTransactionsForFriend);
+app.get('/transaction/friend', getAllTransactionsForFriend);
+
+app.get('/user/activity', getActivities);
+
+app.post('/image-upload', uploadImage);
+
+app.get('/user/transactions',getAllTransactionsForUser);
 
 //Route to handle get group Request Call
 //app.get('/groups/transactions', );

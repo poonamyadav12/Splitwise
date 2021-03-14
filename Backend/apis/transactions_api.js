@@ -3,6 +3,8 @@ import { groupschema } from '../dataschema/group_schema.js';
 import { txnschema } from '../dataschema/transaction_schema.js';
 import { insertIfNotExist, getUserById } from './user_api.js';
 import { v4 as uuidv4 } from 'uuid';
+import { ActivityType } from '../dataschema/activity_schema.js';
+import { insertActivity } from './activity_api.js';
 var Joi = require('joi');
 
 export async function createTransaction(req, res) {
@@ -24,6 +26,8 @@ export async function createTransaction(req, res) {
         const modifiedTxn = JSON.parse(JSON.stringify(transaction));
         modifiedTxn.id = uuidv4();
         await conn.query(stmt, [JSON.stringify(modifiedTxn)]);
+        const transactionActivity = buiildTransactionActivity(modifiedTxn.from, modifiedTxn.group_id, modifiedTxn);
+        insertActivity(conn, transactionActivity);
         await conn.commit();
 
         res.status(200).send(modifiedTxn).end();
@@ -42,6 +46,17 @@ export async function createTransaction(req, res) {
     } finally {
         conn && conn.release();
     }
+}
+
+function buiildTransactionActivity(creator, groupId, transaction) {
+    return JSON.parse(JSON.stringify({
+        user_id: creator,
+        group: {
+            id: groupId,
+        },
+        transaction: transaction,
+        type: ActivityType.TRANSACTION_ADDED,
+    }));
 }
 
 export async function getAllTransactionsForGroup(req, res) {
@@ -182,50 +197,135 @@ export async function getAllTransactionsForFriend(req, res) {
         conn && conn.release();
     }
 }
+export async function getAllTransactionsForUser(req, res) {
+
+    // Access the provided 'page' and 'limt' query parameters
+    let userId = req.query.userId;
+    if (!userId) {
+        res
+            .status(400)
+            .send(
+                {
+                    code: 'INVALID_PARAM',
+                    msg: 'Invalid User ID'
+                }
+            )
+            .end();
+    }
+
+    console.log("Inside get User Transaction Request");
+
+    let conn;
+    try {
+        conn = await connection();
+        const transactions = await getTransactionsByUserId(conn, userId);
+        console.log("Transactions By User ID  " + JSON.stringify(transactions));
+
+        res.status(200).send(transactions).end();
+    } catch (err) {
+        console.log(err);
+        res
+            .status(500)
+            .send(
+                {
+                    code: err.code,
+                    msg: 'Unable to successfully get the User Transaction! Please check the application logs for more details.'
+                }
+            )
+            .end();
+    } finally {
+        conn && conn.release();
+    }
+}
 
 
-export async function getTransactionsByFriendId(conn,friendId,userId) {
-    
-        const stmt = '    SELECT\
-        T.TransactionInfo,\
-        (\
-            SELECT\
-                U1.User\
-            from\
-                Users U1\
-            WHERE\
-                U1.UserId =(T.TransactionInfo ->> "$.from")\
-        ) AS FromUser,\
-        (\
-            SELECT\
-                JSON_ARRAYAGG(U2.User)\
-            from\
-                Users U2\
-            WHERE\
-                U2.UserId MEMBER OF(JSON_EXTRACT(T.TransactionInfo, "$.to"))\
-        ) AS ToUsers,\
-        T.CreatedAt,\
-        T.UpdatedAt\
-    FROM\
-        Transactions T\
-    WHERE\
-        JSON_EXTRACT(T.TransactionInfo, "$.from") = ? AND ? MEMBER OF\
-         (JSON_EXTRACT(T.TransactionInfo,"$.to")) OR (JSON_EXTRACT(T.TransactionInfo, "$.from") = ? AND ? MEMBER OF\
-         (JSON_EXTRACT(T.TransactionInfo,"$.to")))';
+export async function getTransactionsByFriendId(conn, friendId, userId) {
 
-        const result = await conn.query(stmt, [userId,friendId,friendId,userId]);
-        console.log("Inside getTransactionsByFriedId " + JSON.stringify(result));
-        console.log(JSON.stringify(result));
-       
-        if (result.length > 0) {
-            return JSON.parse(JSON.stringify(result)).map((value) => {
-                const transaction = JSON.parse(value.TransactionInfo);
-                transaction.from = JSON.parse(value.FromUser);
-                transaction.to = JSON.parse(value.ToUsers);
-                transaction.createdAt = value.CreatedAt;
-                return transaction;
-            });
-        }
-        
-        return [];
+    const stmt = '    SELECT \
+    T.TransactionInfo, \
+    ( \
+        SELECT \
+            U1.User \
+        from \
+            Users U1 \
+        WHERE \
+            U1.UserId =(T.TransactionInfo ->> "$.from") \
+    ) AS FromUser, \
+    ( \
+        SELECT \
+            JSON_ARRAYAGG(U2.User) \
+        from \
+            Users U2 \
+        WHERE \
+            U2.UserId MEMBER OF(JSON_EXTRACT(T.TransactionInfo, "$.to")) \
+    ) AS ToUsers, \
+    T.CreatedAt, \
+    T.UpdatedAt \
+FROM \
+    Transactions T \
+WHERE \
+    JSON_EXTRACT(T.TransactionInfo, "$.from") = ? AND ? MEMBER OF \
+     (JSON_EXTRACT(T.TransactionInfo,"$.to")) OR (JSON_EXTRACT(T.TransactionInfo, "$.from") = ? AND ? MEMBER OF \
+     (JSON_EXTRACT(T.TransactionInfo,"$.to")))';
+
+    const result = await conn.query(stmt, [userId, friendId, friendId, userId]);
+    console.log("Inside getTransactionsByFriedId " + JSON.stringify(result));
+    console.log(JSON.stringify(result));
+
+    if (result.length > 0) {
+        return JSON.parse(JSON.stringify(result)).map((value) => {
+            const transaction = JSON.parse(value.TransactionInfo);
+            transaction.from = JSON.parse(value.FromUser);
+            transaction.to = JSON.parse(value.ToUsers);
+            transaction.createdAt = value.CreatedAt;
+            return transaction;
+        });
+    }
+
+    return [];
+}
+
+async function getTransactionsByUserId(conn, userId) {
+
+    const stmt = '    SELECT \
+    T.TransactionInfo, \
+    ( \
+        SELECT \
+            U1.User \
+        from \
+            Users U1 \
+        WHERE \
+            U1.UserId =(T.TransactionInfo ->> "$.from") \
+    ) AS FromUser, \
+    ( \
+        SELECT \
+            JSON_ARRAYAGG(U2.User) \
+        from \
+            Users U2 \
+        WHERE \
+            U2.UserId MEMBER OF(JSON_EXTRACT(T.TransactionInfo, "$.to")) \
+    ) AS ToUsers, \
+    T.CreatedAt, \
+    T.UpdatedAt \
+FROM \
+    Transactions T \
+WHERE \
+    JSON_EXTRACT(T.TransactionInfo, "$.from") = ?  OR (? MEMBER OF \
+     (JSON_EXTRACT(T.TransactionInfo,"$.to")))';
+
+    const result = await conn.query(stmt, [userId,userId,userId,userId]);
+    console.log("Inside getTransactionsByUserId " + JSON.stringify(result));
+    console.log(JSON.stringify(result));
+
+    if (result.length > 0) {
+        return JSON.parse(JSON.stringify(result)).map((value) => {
+            const transaction = JSON.parse(value.TransactionInfo);
+            transaction.from = JSON.parse(value.FromUser);
+            transaction.to = JSON.parse(value.ToUsers);
+            transaction.createdAt = value.CreatedAt;
+            return transaction;
+        });
+    }
+
+    return [];
 }

@@ -1,14 +1,7 @@
 import React, { Component } from 'react';
 import '../../App.css';
-import axios from 'axios';
-import cookie from 'react-cookies';
-import { Redirect } from 'react-router';
-import { FaTag } from 'react-icons/fa';
-import { Link } from 'react-router-dom';
 import { ListGroup, Card, Accordion, Button, Container, Row, Col } from 'react-bootstrap';
 import { connect } from 'react-redux';
-
-const userId = "ajay.yadav@gmail.com";
 
 export class TransactionView extends Component {
     componentDidMount() {

@@ -70,7 +70,7 @@ const GroupHeader = (props) => {
         <Card.Header>
             <Container>
                 <Row>
-                    <Col sm={10}><GrGroup /> &nbsp; {props.data.group.name}</Col>
+                    <Col sm={10}><h3><GrGroup /> &nbsp; {props.data.group.name}</h3></Col>
                     <Col sm={2}> <Container><Button onClick={openAddExpenseForm}>ADD EXPENSE</Button>
                         {isAddExpenseOpen ? <ConnectedAddExpenseModal reloadGroupView={props.reload} group={props.data.group} closeModal={closeAddExpenseForm} isOpen={isAddExpenseOpen} /> : null}
                     </Container></Col>

@@ -16,6 +16,7 @@ export const activitySchema = Joi.object().keys(
             name: Joi.string().optional()
         }).required(),
         added: Joi.object().optional(),
+        transaction: Joi.object().optional(),
         type: Joi.string().valid(...Object.values(ActivityType)).required(),
     }
 );

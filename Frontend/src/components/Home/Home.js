@@ -17,6 +17,9 @@ import { AlertMessages } from '../Alert/Alert';
 import CurrencyInput from 'react-currency-input';
 import { UserTypeHead } from '../User/UserTypeHead';
 import { FriendView } from '../Friends/FriendView';
+import { ActivityView } from '../Activity/ActivityView';
+import { UploadImage } from '../Image/UploadImage';
+import { DashboardView } from '../Dashboard/DashboardView';
 
 class Home extends Component {
     constructor() {
@@ -32,11 +35,13 @@ class Home extends Component {
         }
         this.setGroupView = setGroupView.bind(this);
         this.setFriendView = setFriendView.bind(this);
+        this.setActivityView = setActivityView.bind(this);
+        this.setDashboardView = setDashboardView.bind(this);
         //this.addNewGroup = this.addNewGroup.bind(this);
     }
 
     componentWillMount() {
-        this.props.clearAlert();
+        this.props.clearAlert(); 
     }
     componentDidMount() {
         this.fetchData();
@@ -75,9 +80,9 @@ class Home extends Component {
                             <Col lg={2}>
                                 <Card style={{ width: '18rem' }}>
                                     <ListGroup>
-                                        <ListGroup.Item><Link to={"/home" + this.props.user.email}>DashBoard</Link></ListGroup.Item>
-                                        <ListGroup.Item><Link to={"/home" + this.props.user.email}>Recent Activity</Link></ListGroup.Item>
-
+                                        <ListGroup.Item><Link to={"#"}  onClick={() => this.setDashboardView(this.props.user.email)}>DashBoard</Link></ListGroup.Item>
+                                        <ListGroup.Item>
+                                            <Link to={"#"} onClick={() => this.setActivityView(this.props.user.email)}>Recent Activity</Link></ListGroup.Item>
                                     </ListGroup>
                                     <ListGroup>
                                         <ListGroup.Item>
@@ -95,7 +100,8 @@ class Home extends Component {
                                 </Card>
                             </Col>
                             <Col lg={8}>
-                                {renderMiddleView(this.state)}
+                                {renderMiddleView(this.state,this.setGroupView)}
+                                {/* <UploadImage></UploadImage> */}
                             </Col>
                             <Col lg={2}>
                                 <Card style={{ width: '18rem' }}>
@@ -115,23 +121,31 @@ class Home extends Component {
         )
     }
 }
-
+function setDashboardView() {
+    this.setState({ viewComponent: ViewComponent.DASHBOARD });
+}
 function setGroupView(groupId) {
     this.setState({ viewComponent: ViewComponent.GROUPVIEW, groupViewData: { groupId } });
 }
 function setFriendView(friend) {
     this.setState({ viewComponent: ViewComponent.FRIENDVIEW, friendViewData: { friend } });
 }
-function renderMiddleView(state) {
+function setActivityView(userId) {
+    this.setState({ viewComponent: ViewComponent.RECENTACTIVITYVIEW, activityViewData: { userId } });
+}
+function renderMiddleView(state,setGroupView) {
     switch (state.viewComponent) {
         case ViewComponent.DASHBOARD:
-            return 'DashBoard View';
+            return <DashboardView/>;
         case ViewComponent.GROUPVIEW:
             const groupId = state.groupViewData.groupId;
             return <GroupView key={groupId} groupId={groupId} />;
         case ViewComponent.FRIENDVIEW:
             const friend = state.friendViewData.friend;
             return <FriendView key={friend.email} friend={friend} />;
+        case ViewComponent.RECENTACTIVITYVIEW:
+            const userId = state.activityViewData.userId;
+            return <ActivityView key={userId} userId={userId} setGroupView={setGroupView} />;
         default:
             return '';
     }
@@ -141,6 +155,7 @@ const ViewComponent = Object.freeze({
     DASHBOARD: 'DASHBOARD',
     GROUPVIEW: 'GROUPVIEW',
     FRIENDVIEW: 'FRIENDVIEW',
+    RECENTACTIVITYVIEW: 'RECENTACTIVITYVIEW'
 });
 
 function GroupCreateModal(props) {
