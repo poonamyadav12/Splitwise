@@ -6,7 +6,7 @@ import session from 'express-session';
 //var cookieParser = require('cookie-parser');
 import cors from 'cors';
 import { createUser, getUsersBySearchString, validateLogin } from './apis/user_api';
-import { createGroup, getAllGroupsForUser, getGroupDetails } from './apis/group_api';
+import { createOrUpdateGroup, getAllGroupsForUser, getGroupDetails } from './apis/group_api';
 import { createTransaction, getAllTransactionsForFriend, getAllTransactionsForGroup, getAllTransactionsForUser, getTransactionsByUserId } from './apis/transactions_api';
 import { getActivities } from './apis/activity_api';
 import { uploadImage } from './apis/image_upload';
@@ -156,7 +156,7 @@ app.post('/user/signup', createUser);
 app.post('/user/login', validateLogin);
 
 //Route to handle create group Request Call
-app.post('/group/create', createGroup);
+app.post('/group/createOrUpdate', createOrUpdateGroup);
 
 //Route to handle get group Request Call
 app.get('/group/get', getGroupDetails);

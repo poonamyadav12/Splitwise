@@ -1,25 +1,19 @@
-import React, { Component, useEffect, useState } from 'react';
-import '../../App.css';
 import axios from 'axios';
-import cookie from 'react-cookies';
-import { GroupList } from '../Groups/GroupList';
-import { TransactionView } from '../Transactions/TransactionView.js'
-import { GroupView } from '../Groups/GroupView.js'
+import React, { Component } from 'react';
+import { Card, Col, Container, ListGroup, Row } from 'react-bootstrap';
+import { IoMdAdd } from 'react-icons/io';
+import { connect } from 'react-redux';
 import { Redirect } from 'react-router';
 import { Link } from 'react-router-dom';
-import { IoMdAdd } from 'react-icons/io';
-import { MdRemoveCircleOutline } from 'react-icons/md';
-import { ListGroup, Row, Container, Col, Card, Modal, InputGroup, Form, Button } from 'react-bootstrap';
-import { connect } from 'react-redux';
-import { FriendList } from '../Friends/FriendList';
+import '../../App.css';
 import { alertActions } from '../../_actions';
-import { AlertMessages } from '../Alert/Alert';
-import CurrencyInput from 'react-currency-input';
-import { UserTypeHead } from '../User/UserTypeHead';
-import { FriendView } from '../Friends/FriendView';
 import { ActivityView } from '../Activity/ActivityView';
-import { UploadImage } from '../Image/UploadImage';
 import { DashboardView } from '../Dashboard/DashboardView';
+import { FriendList } from '../Friends/FriendList';
+import { FriendView } from '../Friends/FriendView';
+import { GroupCreateOrUpdateModal } from '../Groups/GroupCreateOrUpdateModel';
+import { GroupList } from '../Groups/GroupList';
+import { GroupView } from '../Groups/GroupView.js';
 
 class Home extends Component {
     constructor() {
@@ -41,10 +35,10 @@ class Home extends Component {
     }
 
     componentWillMount() {
-        this.props.clearAlert(); 
+        this.props.clearAlert();
     }
     componentDidMount() {
-        this.fetchData();
+        if (this.props.user) this.fetchData();
     }
 
     fetchData() {
@@ -80,7 +74,7 @@ class Home extends Component {
                             <Col lg={2}>
                                 <Card style={{ width: '18rem' }}>
                                     <ListGroup>
-                                        <ListGroup.Item><Link to={"#"}  onClick={() => this.setDashboardView(this.props.user.email)}>DashBoard</Link></ListGroup.Item>
+                                        <ListGroup.Item><Link to={"#"} onClick={() => this.setDashboardView(this.props.user.email)}>DashBoard</Link></ListGroup.Item>
                                         <ListGroup.Item>
                                             <Link to={"#"} onClick={() => this.setActivityView(this.props.user.email)}>Recent Activity</Link></ListGroup.Item>
                                     </ListGroup>
@@ -88,7 +82,7 @@ class Home extends Component {
                                         <ListGroup.Item>
                                             <Container>
                                                 <LinkWithText text='Groups' onClick={() => this.openCreateGroupForm()} label='+ add' link="#" />
-                                                {this.state.isGroupCreateOpen ? <ConnectedGroupCreateModal reloadHomeView={this.reload.bind(this)} closeModal={() => this.closeCreateGroupForm()} isOpen={this.state.isGroupCreateOpen} /> : null}
+                                                {this.state.isGroupCreateOpen ? <GroupCreateOrUpdateModal reloadHomeView={this.reload.bind(this)} closeModal={() => this.closeCreateGroupForm()} isOpen={this.state.isGroupCreateOpen} /> : null}
                                             </Container>
                                         </ListGroup.Item>
                                         <ListGroup.Item><GroupList groups={this.state.groups} setGroupView={this.setGroupView} /></ListGroup.Item>
@@ -100,7 +94,7 @@ class Home extends Component {
                                 </Card>
                             </Col>
                             <Col lg={8}>
-                                {renderMiddleView(this.state,this.setGroupView)}
+                                {renderMiddleView(this.state, this.setGroupView, this.reload.bind(this))}
                                 {/* <UploadImage></UploadImage> */}
                             </Col>
                             <Col lg={2}>
@@ -133,13 +127,13 @@ function setFriendView(friend) {
 function setActivityView(userId) {
     this.setState({ viewComponent: ViewComponent.RECENTACTIVITYVIEW, activityViewData: { userId } });
 }
-function renderMiddleView(state,setGroupView) {
+function renderMiddleView(state, setGroupView, reloadHomeView) {
     switch (state.viewComponent) {
         case ViewComponent.DASHBOARD:
-            return <DashboardView/>;
+            return <DashboardView />;
         case ViewComponent.GROUPVIEW:
             const groupId = state.groupViewData.groupId;
-            return <GroupView key={groupId} groupId={groupId} />;
+            return <GroupView key={groupId} groupId={groupId} reloadHomeView={reloadHomeView} />;
         case ViewComponent.FRIENDVIEW:
             const friend = state.friendViewData.friend;
             return <FriendView key={friend.email} friend={friend} />;
@@ -158,146 +152,6 @@ const ViewComponent = Object.freeze({
     RECENTACTIVITYVIEW: 'RECENTACTIVITYVIEW'
 });
 
-function GroupCreateModal(props) {
-    const [name, setName] = useState("");
-
-    const [errorMsg, setErrorMsg] = useState([]);
-
-    const [members, setMembers] = useState([]);
-
-    function handleGroupNameChange(e) {
-        e.preventDefault();
-        setName(e.target.value);
-    }
-
-    function handleGroupMemberChange(members) {
-        setMembers(members);
-    }
-
-    async function handleSubmit(e) {
-        e.preventDefault();
-        const data = {
-            group: {
-                creator: props.user.email,
-                name,
-                members: [...members, {
-                    first_name: props.user.first_name,
-                    email: props.user.email,
-                    last_name: props.user.last_name
-                }],
-            }
-        };
-
-        console.log("group request " + JSON.stringify(data));
-        try {
-            const response = await axios.post('http://localhost:3001/group/create', data);
-            console.log("group create response " + JSON.stringify(response));
-            props.reloadHomeView();
-            props.closeModal();
-
-        } catch (error) {
-            console.log("Error " + JSON.stringify(error));
-            const data = error.response.data;
-            const msg = Array.isArray(data) ? data.map(d => d.message) : ["Some error occured, please try again."];
-            setErrorMsg(msg);
-        }
-    }
-
-    return (
-        <>
-
-            <Modal
-                show={props.isOpen}
-                onHide={props.closeModal}
-                keyboard={false}
-                className="add-expense-modal"
-                animation={false}
-                style={{ width: "100vw" }}
-            >
-                <Modal.Header closeButton>
-                    <Modal.Title>START A NEW GROUP</Modal.Title>
-                    <AlertMessages messages={errorMsg} />
-                </Modal.Header>
-                <Modal.Body>
-                    <Form.Group controlId="formGroupName">
-                        <Form.Label>My group shall be called...</Form.Label>
-                        <Form.Control type="text" style={{ 'font-size': '24px', width: '29.5rem' }} placeholder="1600 Pennsylvania Ave" onChange={handleGroupNameChange} />
-                    </Form.Group>
-                    <Card.Title>GROUP MEMBERS</Card.Title>
-                    <GroupMemberList onChange={(members) => handleGroupMemberChange(members)} />
-                </Modal.Body>
-                <Modal.Footer>
-                    <Button variant="secondary" onClick={props.closeModal}>
-                        Cancel
-            </Button>
-                    <Button variant="primary" onClick={handleSubmit}>Save</Button>
-                </Modal.Footer>
-            </Modal>
-        </>
-    );
-}
-
-const GroupMemberList = (props) => {
-    const [members, setMembers] = useState([]);
-    function handleEmailChange(index, e) {
-        const newMembers = members.map((member, i) => {
-            if (i === index) {
-                return { ...member, email: e.target.value };
-            }
-            return member;
-        });
-        setMembers(newMembers);
-        props.onChange(newMembers);
-
-    }
-    function handleNameChange(index, value) {
-        const newMembers = members.map((member, i) => {
-            if (i === index) {
-                return { ...member, first_name: value[0].first_name, last_name: value[0].last_name, email: value[0].email };
-            }
-
-            return member;
-        });
-        setMembers(newMembers);
-        props.onChange(newMembers);
-    }
-    function addEmptyMember() {
-        setMembers([...members, {}]);
-    }
-    function handleDelete(index, e) {
-        setMembers(members.filter((member, i) => i !== index));
-    }
-    return (
-        <>
-            {members.map((member, index) => (
-                <Container>
-                    <Row>
-                        <Col sm={2}>
-                            <Form.Group controlId="formName">
-                                <UserTypeHead skipCurrentUser={true} onChange={handleNameChange.bind(null, index)} style={{ 'font-size': '18px', width: '17.5rem' }} />
-                                {/* <Form.Control type="text" style={{ 'font-size': '18px', width: '17.5rem' }}
-                                    value={member.name ? member.name : null}
-                                    placeholder="Name" onChange={handleNameChange.bind(null, index)} /> */}
-                            </Form.Group>
-                        </Col>
-                        <Col sm={2}>
-                            <Form.Group controlId="formEmail">
-                                <Form.Control type="text" style={{ 'font-size': '18px', width: '19rem' }}
-                                    value={member.email ? member.email : null}
-                                    placeholder="Email" onChange={handleEmailChange.bind(null, index)} />
-                            </Form.Group>
-                        </Col>
-                        <Col sm={1} style={{ 'text-align': 'center' }}>
-                            <MdRemoveCircleOutline onClick={handleDelete.bind(null, index)} style={{ height: '27px', width: '25px', 'vertical-align': 'text-top' }} />
-                        </Col>
-                    </Row>
-                </Container>
-            ))}
-            <Link onClick={() => addEmptyMember()} to="#" > +Add person</Link>
-        </>
-    );
-};
-
 const LinkWithText = (props) => <Container><Row><Col sm={1} >{props.text}&nbsp; </Col><Col sm={1}><Link onClick={() => props.onClick()} to={props.link}><IoMdAdd /></Link></Col></Row></Container>
 
 function mapState(state) {
@@ -311,5 +165,5 @@ const actionCreators = {
 };
 
 const connectedHome = connect(mapState, actionCreators)(Home);
-const ConnectedGroupCreateModal = connect(mapState, actionCreators)(GroupCreateModal);
 export { connectedHome as Home };
+

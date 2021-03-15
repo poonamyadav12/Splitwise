@@ -10,14 +10,15 @@ import { connect } from 'react-redux';
 import { Modal } from 'react-bootstrap';
 import CurrencyInput from 'react-currency-input';
 import { AlertMessages } from '../Alert/Alert';
+import { UserAvatar } from '../Shared/Shared';
 
 
 class FriendView extends React.Component {
 
     constructor(props) {
         super(props);
-        this.state = { transactions: null,};
-        
+        this.state = { transactions: null, };
+
     }
 
     async componentDidMount() {
@@ -27,9 +28,9 @@ class FriendView extends React.Component {
     async fetchData() {
         try {
             if (this.props.friend) {
-          
-              const friendTxn= await axios.get(`http://localhost:3001/transaction/friend?friendId=${this.props.friend.email}&userId=${this.props.user.email}`);
-              
+
+                const friendTxn = await axios.get(`http://localhost:3001/transaction/friend?friendId=${this.props.friend.email}&userId=${this.props.user.email}`);
+
                 this.setState({
                     transactions: friendTxn.data,
                 });
@@ -41,26 +42,25 @@ class FriendView extends React.Component {
     }
 
     async forceReload() {
-       await this.fetchData();
+        await this.fetchData();
     }
 
     render() {
         return <>
             {this.props.friend && <Card>
                 <FriendHeader data={{ friend: this.props.friend }} reload={this.forceReload.bind(this)} />
-                {this.state.transactions&&<TransactionView transactions={this.state.transactions} />}
+                {this.state.transactions && <TransactionView transactions={this.state.transactions} />}
             </Card>}
         </>;
     }
 }
 
 const FriendHeader = (props) => {
-  
     return (
         <Card.Header>
             <Container>
                 <Row>
-                    <Col sm={12}><h3><GrUser /> &nbsp; {props.data.friend.first_name}</h3></Col>
+                    <Col sm={12}><UserAvatar user={props.data.friend} /></Col>
                 </Row>
             </Container>
         </Card.Header >

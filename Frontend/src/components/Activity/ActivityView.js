@@ -10,6 +10,7 @@ import { connect } from 'react-redux';
 import { Modal } from 'react-bootstrap';
 import CurrencyInput from 'react-currency-input';
 import { AlertMessages } from '../Alert/Alert';
+import { GroupAvatar } from '../Shared/Shared';
 var dateFormat = require("dateformat");
 
 
@@ -86,7 +87,7 @@ const SingleActivityView = (props) => {
     <ListGroup.Item key={props.index} onClick={()=>props.setGroupView(props.activity.group.id)}>
         <Container>
             <Row>
-                <div>{header}</div>
+                <div><GroupAvatar group={props.activity.group}/>{header}</div>
             </Row>
             <Row>
                 <div>{dateFormat(date, "mmm d")}</div>
