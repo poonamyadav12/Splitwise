@@ -305,6 +305,14 @@ async function getTransactionsByUserId(conn, userId) {
         WHERE \
             U2.UserId MEMBER OF(JSON_EXTRACT(T.TransactionInfo, "$.to")) \
     ) AS ToUsers, \
+    ( \
+        SELECT \
+            G1.GroupInfo \
+        from \
+            GroupInfos G1 \
+        WHERE \
+            G1.GroupId = T.GroupId \
+    ) AS GroupInfo, \
     T.CreatedAt, \
     T.UpdatedAt \
 FROM \
@@ -322,6 +330,7 @@ WHERE \
             const transaction = JSON.parse(value.TransactionInfo);
             transaction.from = JSON.parse(value.FromUser);
             transaction.to = JSON.parse(value.ToUsers);
+            transaction.group = JSON.parse(value.GroupInfo);
             transaction.createdAt = value.CreatedAt;
             return transaction;
         });

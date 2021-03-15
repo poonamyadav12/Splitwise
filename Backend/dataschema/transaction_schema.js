@@ -10,7 +10,7 @@ export const txnschema = Joi.object().keys(
         from: Joi.string().email().required(),
         to: Joi.array().items(Joi.string().email()).min(1).required(),
         amount: Joi.number().required(),
-        currency_code: Joi.string().max(3),
+        currency_code: Joi.string().max(3).required().label('Currency code'),
         group_id: Joi.string().required(),
         description: Joi.string().required(),
         status: Joi.string().default(TransactionStatus.ACTIVE),

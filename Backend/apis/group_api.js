@@ -7,31 +7,33 @@ import { insertIfNotExist, getUserById } from './user_api.js';
 import { v4 as uuidv4 } from 'uuid';
 var Joi = require('joi');
 
-export async function createGroup(req, res) {
-
+export async function createOrUpdateGroup(req, res) {
     console.log("Inside create group post Request");
     const { error, value } = Joi.object().keys(
         { group: groupschema.required(), }
     ).validate(req.body);
 
     if (error) {
-        res.send(error.details);
+        res.status(400).send(error.details);
         return;
     }
 
     const group = value.group;
     console.log(JSON.stringify(group));
-    const stmt = 'INSERT INTO GroupInfos(GroupInfo) VALUES (?)';
+    const isUpdate = !!group.id;
+    const stmt = isUpdate ? 'UPDATE GroupInfos SET GroupInfo=? WHERE GroupId=?' : 'INSERT INTO GroupInfos(GroupInfo) VALUES (?)';
     let conn;
     try {
         conn = await connection();
         await conn.beginTransaction();
         const modifiedGroup = JSON.parse(JSON.stringify(group));
-        modifiedGroup.id = uuidv4();
-        group.id = modifiedGroup.id;
+        if (!isUpdate) {
+            modifiedGroup.id = uuidv4();
+            group.id = modifiedGroup.id;
+        }
         modifiedGroup.members = group.members.map((member) => member.email);
-        console.log("modified "+JSON.stringify(modifiedGroup));
-        await conn.query(stmt, [JSON.stringify(modifiedGroup)]);
+        console.log("modified " + JSON.stringify(modifiedGroup));
+        await conn.query(stmt, isUpdate ? [JSON.stringify(modifiedGroup), group.id] : [JSON.stringify(modifiedGroup)]);
         await Promise.all(group.members.map((member) =>
             insertIfNotExist(conn, member)));
         await insertActivity(conn, buildGroupCreatedActivity(group.creator, group));
@@ -48,7 +50,7 @@ export async function createGroup(req, res) {
             .send(
                 {
                     code: err.code,
-                    msg: 'Unable to successfully insert the Group! Please check the application logs for more details.'
+                    msg: 'Unable to successfully insert/update the Group! Please check the application logs for more details.'
                 }
             )
             .end();

@@ -3,20 +3,22 @@ import axios from 'axios';
 import { Redirect } from 'react-router';
 import cookie from 'react-cookies';
 import { ListGroup, Card, ButtonGroup, Button, Container, Row, Col, Form, InputGroup, FormControl, Alert } from 'react-bootstrap';
-import { GrGroup } from 'react-icons/gr';
+import { GrEdit } from 'react-icons/gr';
 import { TransactionView } from '../Transactions/TransactionView';
 import { alertActions } from '../../_actions';
 import { connect } from 'react-redux';
 import { Modal } from 'react-bootstrap';
 import CurrencyInput from 'react-currency-input';
 import { AlertMessages } from '../Alert/Alert';
+import { GroupAvatar } from '../Shared/Shared';
+import { GroupCreateOrUpdateModal } from './GroupCreateOrUpdateModel';
 
 
 class GroupView extends React.Component {
 
     constructor(props) {
         super(props);
-        this.state = {groupId:this.props.groupId, group: null, transactions: [], isAddExpenseOpen: false, };
+        this.state = { groupId: this.props.groupId, group: null, transactions: [], isAddExpenseOpen: false, isGroupUpdateOpen: false, };
     }
 
     async componentDidMount() {
@@ -50,7 +52,7 @@ class GroupView extends React.Component {
     render() {
         return <>
             {this.state.group && <Card>
-                <GroupHeader data={{ group: this.state.group }} reload={this.forceReload.bind(this)} />
+                <GroupHeader data={{ group: this.state.group }} reloadHomeView={this.props.reloadHomeView} reloadGroupView={this.forceReload.bind(this)} />
                 <TransactionView transactions={this.state.transactions} />
             </Card>}
         </>;
@@ -59,6 +61,7 @@ class GroupView extends React.Component {
 
 const GroupHeader = (props) => {
     const [isAddExpenseOpen, setAddExpenseFormOpen] = useState(false);
+    const [isGroupUpdateOpen, setGroupUpdateOpen] = useState(false);
 
     function openAddExpenseForm() {
         setAddExpenseFormOpen(true);
@@ -66,13 +69,20 @@ const GroupHeader = (props) => {
     function closeAddExpenseForm() {
         setAddExpenseFormOpen(false);
     }
+    function openUpdateGroupForm() {
+        setGroupUpdateOpen(true);
+    }
+    function closeUpdateGroupForm() {
+        setGroupUpdateOpen(false);
+    }
     return (
         <Card.Header>
             <Container>
                 <Row>
-                    <Col sm={10}><h3><GrGroup /> &nbsp; {props.data.group.name}</h3></Col>
+                    <Col sm={10}><div style={{ display: 'flex', alignItems: 'baseline' }}><h3><GroupAvatar group={props.data.group} /> &nbsp; {props.data.group.name}</h3> &nbsp; <GrEdit onClick={openUpdateGroupForm} />
+                        {isGroupUpdateOpen ? <GroupCreateOrUpdateModal group={props.data.group} reloadHomeView={() => { props.reloadHomeView(); props.reloadGroupView(); }} closeModal={closeUpdateGroupForm} isOpen={isGroupUpdateOpen} /> : null}</div></Col>
                     <Col sm={2}> <Container><Button onClick={openAddExpenseForm}>ADD EXPENSE</Button>
-                        {isAddExpenseOpen ? <ConnectedAddExpenseModal reloadGroupView={props.reload} group={props.data.group} closeModal={closeAddExpenseForm} isOpen={isAddExpenseOpen} /> : null}
+                        {isAddExpenseOpen ? <ConnectedAddExpenseModal reloadGroupView={props.reloadGroupView} group={props.data.group} closeModal={closeAddExpenseForm} isOpen={isAddExpenseOpen} /> : null}
                     </Container></Col>
                 </Row>
             </Container>
@@ -113,7 +123,7 @@ function AddExpenseModal(props) {
                 "from": props.user.email,
                 "to": Array.from(selectedMembers).filter(([member, checked]) => checked).map(([member, checked]) => member),
                 "amount": Number(amount),
-                "currency_code": props.user.default_currency_code,
+                "currency_code": props.user.default_currency,
                 "group_id": props.group.id,
                 "description": description,
             },
@@ -136,11 +146,11 @@ function AddExpenseModal(props) {
 
     return (
         <>
-
             <Modal
                 show={props.isOpen}
                 onHide={props.closeModal}
                 keyboard={false}
+                backdrop="static"
                 className="add-expense-modal"
                 animation={false}
                 style={{ width: "100vw" }}
@@ -156,7 +166,6 @@ function AddExpenseModal(props) {
                             <ListGroup.Item>
                                 <InputGroup className="mb-3" key={member.email}>
                                     <InputGroup.Checkbox defaultChecked={true} onChange={toggleMember.bind(null, member.email)} aria-label="Checkbox for following text input" />
-
                                 &nbsp;<Form.Label>{`${member.first_name}${member.last_name ? " " + member.last_name : ""}`}</Form.Label>
                                 </InputGroup>
                             </ListGroup.Item>

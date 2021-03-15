@@ -10,7 +10,9 @@ import { connect } from 'react-redux';
 import { Modal } from 'react-bootstrap';
 import CurrencyInput from 'react-currency-input';
 import { AlertMessages } from '../Alert/Alert';
-import { calculateDebt } from '../../_helper/debtcalculator';
+import { calculateDebt, calculateDebtPerFriend } from '../../_helper/debtcalculator';
+import { LocalizedAmount, UserAvatar, UserBalanceAvatar } from '../Shared/Shared';
+var _ = require('lodash');
 
 
 class DashboardView extends React.Component {
@@ -44,28 +46,64 @@ class DashboardView extends React.Component {
 
   render() {
     if (!this.state.transactions) return null;
-    const calculatedDebt = calculateDebt(this.props.user.email,this.state.transactions);
+    if (this.state.transactions.length === 0) return <h5>No transactions yet. Start adding expenses to see the balances.</h5>;
+    const calculatedDebt = calculateDebt(this.props.user.email, this.state.transactions);
+    const debtPerFriend = calculateDebtPerFriend(this.props.user.email, this.state.transactions);
     return <>
       <Card>
         <Container>
           <Row>
             <Col sm={4}>
-            <Card.Header>
-              <h5>total balance ${calculatedDebt.totalAmount}</h5>
-            </Card.Header>
+              <div><h5>Total balance </h5></div>
+              <div>
+                <h4 style={{ color: calculatedDebt.totalAmount >= 0 ? 'green' : 'red' }}>
+                  <LocalizedAmount amount={calculatedDebt.totalAmount} currency={this.props.user.default_currency} />
+                </h4>
+              </div>
             </Col>
             <Col sm={4}>
-              <h5>You owe ${calculatedDebt.oweAmount}</h5>
+              <div><h5>You owe </h5></div>
+              <div>
+                <h4 style={{ color: 'red' }}>
+                  <LocalizedAmount amount={calculatedDebt.oweAmount} currency={this.props.user.default_currency} />
+                </h4>
+              </div>
             </Col>
             <Col sm={4}>
-              <h5>You are owed ${calculatedDebt.paidAmount}</h5>
+              <div><h5>You are owed </h5></div>
+              <div>
+                <h4 style={{ color: 'green' }}>
+                  <LocalizedAmount amount={calculatedDebt.paidAmount} currency={this.props.user.default_currency} />
+                </h4>
+              </div>
             </Col>
+          </Row>
+        </Container>
+        <Container>
+          <Row style={{ height: "80vh" }}>
+            <Col sm={4} style={{ height: "85vh", borderRight: "1px solid grey" }}>
+              <h3>YOU OWE</h3>
+              <ListGroup>
+                {debtPerFriend.negative.length > 0 ? debtPerFriend.negative.map((friendBalance) => <BalanceView data={friendBalance} user={this.props.user} />) : null}
+              </ListGroup></Col>
+            <Col sm={4}>
+              <h3>YOU ARE OWED</h3>
+              <ListGroup>
+                {debtPerFriend.positive.length > 0 ? debtPerFriend.positive.map((friendBalance) => <BalanceView data={friendBalance} user={this.props.user} />) : null}
+              </ListGroup></Col>
           </Row>
         </Container>
       </Card>
     </>;
   }
 }
+
+const BalanceView = (props) => {
+  const color = props.data.balance > 0 ? 'green' : 'red';
+  return (<ListGroup.Item>
+    <UserBalanceAvatar user={props.data.friend} />{`${props.data.friend.first_name} ${(props.data.balance > 0 ? 'owes you' : 'you owe')} `}<span style={{ color }}><LocalizedAmount amount={props.data.balance} currency={props.user.default_currency} /></span>
+  </ListGroup.Item >);
+};
 
 const GroupHeader = (props) => {
   const [isAddExpenseOpen, setAddExpenseFormOpen] = useState(false);

@@ -23,8 +23,8 @@ const UserTypeHead = (props) => {
       const options = results.data.map((i) => ({
         email: i.email,
         name: `${i.first_name}${i.last_name ? " " + i.last_name : ""}`,
-        first_name:i.first_name,
-        last_name:i.last_name,
+        first_name: i.first_name,
+        last_name: i.last_name,
         id: i.email,
       }));
       setOptions(options);
@@ -35,17 +35,18 @@ const UserTypeHead = (props) => {
 
   // Bypass client-side filtering by returning `true`. Results are already
   // filtered by the search endpoint, so no need to do it again.
-  const filterBy = (option, props) => {
-    if(props.skipCurrentUser){
-      return option.email!==props.user.email;
+  const filterBy = (option, skipCurrentUser) => {
+    if (skipCurrentUser) {
+      return option.email !== props.user.email;
     }
     return true;
   };
 
   return (
     <AsyncTypeahead
-      filterBy={filterBy}
+      key={props.key}
       id="userTypeHead"
+      filterBy={(option) => filterBy(option, props.skipCurrentUser)}
       isLoading={isLoading}
       labelKey="name"
       minLength={1}
@@ -53,6 +54,7 @@ const UserTypeHead = (props) => {
       options={options}
       placeholder="Search User"
       onChange={props.onChange}
+      defaultInputValue={props.initialValue.first_name ? `${props.initialValue.first_name}${props.initialValue.last_name ? " " + props.initialValue.last_name : ""}` : ''}
       renderMenuItemChildren={(option, props) => (
         <ListGroup.Item key={option.email}>
           <span>{option.name}</span>{' '}
