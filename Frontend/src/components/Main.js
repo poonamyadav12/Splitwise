@@ -1,11 +1,9 @@
 import React, { Component, useState } from 'react';
 import { Button, Container } from 'react-bootstrap';
 import { connect } from 'react-redux';
-import { Route, Switch, withRouter } from 'react-router-dom';
+import { Redirect, Route, Switch, withRouter } from 'react-router-dom';
 import { alertActions } from '../_actions';
 import { AlertMessages } from './Alert/Alert';
-import Create from './Create/Create';
-import Delete from './Delete/Delete';
 import { Home } from './Home/Home';
 import { Navbar } from './LandingPage/Navbar';
 import { Login } from './Login/Login';
@@ -30,16 +28,17 @@ class Main extends Component {
 
                 {alert.messages && <AlertBar type={alert.type} messages={alert.messages} />}
                 <div>
-
                     <Switch>
-                        <Route path="/login" component={Login} />
-                        <Route path="/home" component={Home} />
-                        <Route path="/delete" component={Delete} />
-                        <Route path="/create" component={Create} />
-                        <Route path="/signup" component={Signup} />
-                        <Route path="/profile" component={Profile} />
+                        <Route
+                            exact
+                            path="/"
+                            render={() => <Redirect to="/home" />}
+                        />
+                        <Route exact path="/login" component={Login} />
+                        <Route exact path="/home" component={Home} />
+                        <Route exact path="/signup" component={Signup} />
+                        <Route exact path="/profile" component={Profile} />
                     </Switch>
-
                 </div>
             </Container>
         );

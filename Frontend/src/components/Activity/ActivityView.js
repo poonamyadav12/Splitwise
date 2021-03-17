@@ -3,7 +3,8 @@ import React from 'react';
 import { Card, Container, ListGroup, Row } from 'react-bootstrap';
 import { connect } from 'react-redux';
 import { alertActions } from '../../_actions';
-import { GroupAvatar } from '../Shared/Shared';
+import { SETTLEUP_TXN } from '../../_helper/money';
+import { GroupAvatar, LocalizedAmount } from '../Shared/Shared';
 var dateFormat = require("dateformat");
 
 
@@ -68,7 +69,33 @@ const SingleActivityView = (props) => {
             header = <><b>{createrName}</b>&nbsp;left {' '}<b>{props.activity.deleted.first_name}</b>{' '}<b>{groupName}</b></>;
             break;
         case 'TRANSACTION_ADDED':
-            header = <><b>{createrName}</b>&nbsp;added {' '}<b>{props.activity.transaction.description}</b>{' in '}<b>{groupName}</b></>;
+            header =
+                props.activity.transaction.type == SETTLEUP_TXN ? (
+                    <>
+                        <b>{createrName}</b>{' settled '}
+                        <b style={{ color: 'green' }}>
+                            <LocalizedAmount
+                                amount={props.activity.transaction.amount}
+                                currency={props.user.default_currency}
+                            />
+                        </b>
+                        {' in '}
+                        <b>{groupName}</b>
+                    </>
+                ) : (
+                    <>
+                        <b>{createrName}</b>&nbsp;added{' '}
+                        <b>{props.activity.transaction.description}</b>{' ('}
+                        <b style={{ color: 'red' }}>
+                            <LocalizedAmount
+                                amount={props.activity.transaction.amount}
+                                currency={props.user.default_currency}
+                            />
+                        </b>
+                        {') in '}
+                        <b>{groupName}</b>
+                    </>
+                );
             break;
         default:
             return null;
