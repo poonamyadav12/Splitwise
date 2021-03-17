@@ -1,16 +1,14 @@
 import React, { Component } from 'react';
-import '../../App.css';
-import axios from 'axios';
-import cookie from 'react-cookies';
-import { Redirect } from 'react-router';
-import { userActions } from '../../_actions';
-import { connect } from 'react-redux';
-import { ListGroup, Row, Container, Col, Card, Form, Button } from 'react-bootstrap';
-import TimezoneSelect, { i18nTimezones } from 'react-timezone-select';
+import { Button, Card, Col, Container, Form, ListGroup, Row } from 'react-bootstrap';
 import { Typeahead } from 'react-bootstrap-typeahead';
+import { connect } from 'react-redux';
+import { Redirect } from 'react-router';
+import TimezoneSelect from 'react-timezone-select';
+import '../../App.css';
+import { userActions } from '../../_actions';
+import { getDefaultUserImage } from '../../_constants/avatar';
 import { CURRENCY } from '../../_helper/money';
 import { UploadImage } from '../Image/UploadImage';
-import { getDefaultGroupImage, getDefaultUserImage } from '../../_constants/avatar';
 
 //Define a Login Component
 class Signup extends Component {
@@ -118,7 +116,6 @@ class Signup extends Component {
         //redirect based on successful login
         return (
             <>
-                {console.log('Signup user ' + this.props.user)}
                 {this.props.user && <Redirect to="/home" />}
                 <Container>
                     <Row style={{ alignItems: 'center' }}>

@@ -6,7 +6,7 @@ import { connect } from 'react-redux';
 
 const SEARCH_URI = 'http://localhost:3001/user/search';
 
-const UserTypeHead = (props) => {
+function UserTypeHead(props) {
   const [isLoading, setIsLoading] = useState(false);
   const [options, setOptions] = useState([]);
 
@@ -19,7 +19,6 @@ const UserTypeHead = (props) => {
   const fetchData = async (query) => {
     try {
       const results = await axios.get(`${SEARCH_URI}?queryString=${query}`);
-      console.log("Response for search" + JSON.stringify(results));
       const options = results.data.map((i) => ({
         email: i.email,
         name: `${i.first_name}${i.last_name ? " " + i.last_name : ""}`,
@@ -70,8 +69,5 @@ function mapState(state) {
   return { user };
 }
 
-const actionCreators = {
-};
-
-const connectedUserTypeHead = connect(mapState, actionCreators)(UserTypeHead);
+const connectedUserTypeHead = connect(mapState, {})(UserTypeHead);
 export { connectedUserTypeHead as UserTypeHead };

@@ -46,7 +46,6 @@ class Login extends Component {
         this.props.login(this.state.username, this.state.password);
     }
     render() {
-        console.log("Inside Login " + JSON.stringify(this.props.user));
         return (
             <>
                 {this.props.user && <Redirect to="/home" />}

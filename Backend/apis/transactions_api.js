@@ -17,7 +17,6 @@ export async function createTransaction(req, res) {
         return;
     }
     const transaction = value.transaction;
-    console.log(JSON.stringify(transaction));
     const stmt = 'INSERT INTO Transactions (TransactionInfo) VALUES (?)';
     let conn;
     try {
@@ -31,6 +30,51 @@ export async function createTransaction(req, res) {
         await conn.commit();
 
         res.status(200).send(modifiedTxn).end();
+    } catch (err) {
+        await conn.rollback();
+        console.log(err);
+        res
+            .status(500)
+            .send(
+                {
+                    code: err.code,
+                    msg: 'Unable to successfully insert the txn! Please check the application logs for more details.'
+                }
+            )
+            .end();
+    } finally {
+        conn && conn.release();
+    }
+}
+
+export async function settleTransactions(req, res) {
+    console.log("Inside settle txn post Request");
+    const { error, value } = Joi.object().keys({
+        transactions: Joi.array().items(txnschema)
+    }).validate(req.body);
+    if (error) {
+        res.status(400).send(error.details);
+        return;
+    }
+
+    const transactions = value.transactions;
+    const stmt = 'INSERT INTO Transactions (TransactionInfo) VALUES (?)';
+    let conn;
+    try {
+        conn = await connection();
+        await conn.beginTransaction();
+        const modifiedTxns = transactions.map((txn) => {
+            txn.id = uuidv4();
+            return txn;
+        });
+        await Promise.all(modifiedTxns.map(async (txn) => await conn.query(stmt, [JSON.stringify(txn)])));
+        modifiedTxns.map((modifiedTxn) => {
+            const transactionActivity = buiildTransactionActivity(modifiedTxn.from, modifiedTxn.group_id, modifiedTxn);
+            insertActivity(conn, transactionActivity);
+        })
+        await conn.commit();
+
+        res.status(200).send(modifiedTxns).end();
     } catch (err) {
         await conn.rollback();
         console.log(err);
@@ -81,7 +125,6 @@ export async function getAllTransactionsForGroup(req, res) {
     try {
         conn = await connection();
         const transactions = await getTransactionsByGroupIdV2(conn, groupId);
-        console.log("Transactions By Group ID  " + JSON.stringify(transactions));
 
         res.status(200).send(transactions).end();
     } catch (err) {
@@ -138,7 +181,8 @@ export async function getTransactionsByGroupIdV2(conn, groupId) {
     FROM \
         Transactions T \
     WHERE \
-        JSON_EXTRACT(T.TransactionInfo, "$.group_id") = ?';
+        JSON_EXTRACT(T.TransactionInfo, "$.group_id") = ? \
+        ORDER BY T.CreatedAt DESC';
 
     const result = await conn.query(stmt, [groupId]);
     console.log("Inside getTransactionsByGroupId " + JSON.stringify(result));
@@ -240,7 +284,6 @@ export async function getAllTransactionsForUser(req, res) {
 
 
 export async function getTransactionsByFriendId(conn, friendId, userId) {
-
     const stmt = '    SELECT \
     T.TransactionInfo, \
     ( \
@@ -266,7 +309,8 @@ FROM \
 WHERE \
     JSON_EXTRACT(T.TransactionInfo, "$.from") = ? AND ? MEMBER OF \
      (JSON_EXTRACT(T.TransactionInfo,"$.to")) OR (JSON_EXTRACT(T.TransactionInfo, "$.from") = ? AND ? MEMBER OF \
-     (JSON_EXTRACT(T.TransactionInfo,"$.to")))';
+     (JSON_EXTRACT(T.TransactionInfo,"$.to"))) \
+     ORDER BY T.CreatedAt DESC';
 
     const result = await conn.query(stmt, [userId, friendId, friendId, userId]);
     console.log("Inside getTransactionsByFriedId " + JSON.stringify(result));
@@ -319,9 +363,10 @@ FROM \
     Transactions T \
 WHERE \
     JSON_EXTRACT(T.TransactionInfo, "$.from") = ?  OR (? MEMBER OF \
-     (JSON_EXTRACT(T.TransactionInfo,"$.to")))';
+     (JSON_EXTRACT(T.TransactionInfo,"$.to"))) \
+     ORDER BY T.CreatedAt DESC';
 
-    const result = await conn.query(stmt, [userId,userId,userId,userId]);
+    const result = await conn.query(stmt, [userId, userId, userId, userId]);
     console.log("Inside getTransactionsByUserId " + JSON.stringify(result));
     console.log(JSON.stringify(result));
 

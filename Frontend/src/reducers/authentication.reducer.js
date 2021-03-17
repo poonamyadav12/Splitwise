@@ -10,6 +10,9 @@ export function authentication(state = initialState, action) {
                 loggingIn: true,
             };
         case userConstants.LOGIN_SUCCESS:
+        case userConstants.UPDATE_SUCCESS:
+        case userConstants.REGISTER_SUCCESS:
+            localStorage.setItem('user', JSON.stringify(action.user));
             return {
                 loggedIn: true,
                 user: action.user

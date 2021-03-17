@@ -1,9 +1,9 @@
 import React, { Component } from 'react';
-import '../../App.css';
-import { ListGroup, Card, Accordion, Button, Container, Row, Col } from 'react-bootstrap';
+import { Accordion, Button, Card, Col, Container, Image, ListGroup, Row } from 'react-bootstrap';
 import { connect } from 'react-redux';
+import '../../App.css';
+import { SETTLEUP_TXN } from '../../_helper/money';
 import { LocalizedAmount, UserAvatar } from '../Shared/Shared';
-import { convertAmount } from '../../_helper/money';
 var dateFormat = require("dateformat");
 
 export class TransactionView extends Component {
@@ -13,7 +13,6 @@ export class TransactionView extends Component {
 
     render() {
         const uiTxns = this.props.transactions.map((txn) => convertToUiTransactionView(txn));
-        console.log("UI Txns " + uiTxns);
         if (uiTxns.length === 0) return "No Transaction to show";
         return <Card fluid='true'>
             <Accordion>
@@ -39,24 +38,45 @@ const TransactionAccordian = (props) => {
 
 const TransactionHeader = (props) => (
     <Card.Header>
-        <Accordion.Toggle as={Button} variant="link" eventKey={props.eventKey} >
+        <Accordion.Toggle as={Button} variant='link' eventKey={props.eventKey}>
             <Container>
-                <Row>
-                    <Col sm={1} style={{ width: "1rem" }}>
+                <Row style={{ display: 'flex', alignItems: 'center' }}>
+                    <Col sm={1} style={{ width: '1rem' }}>
                         <Row>
                             <h5 style={{ marginRight: '5px', color: 'grey' }}>
-                                <div>{dateFormat(props.transaction.createdAt, "mmm").toUpperCase()}</div>{' '}
-                                <div>{dateFormat(props.transaction.createdAt, "d")}</div>
+                                <div>
+                                    {dateFormat(props.transaction.createdAt, 'mmm').toUpperCase()}
+                                </div>{' '}
+                                <div>{dateFormat(props.transaction.createdAt, 'd')}</div>
                             </h5>
                         </Row>
                     </Col>
-                    <Col sm={3}>
+                    <Col sm={props.transaction.type !== SETTLEUP_TXN ? 3 : 4}>
                         <Row>
-                            <div className="h5">{props.transaction.description}</div>
+                            {props.transaction.type !== SETTLEUP_TXN ? (
+                                <div className='h5'>{props.transaction.description}</div>
+                            ) : (
+                                <div className='h5'>
+                                    <Image src={'https://assets.splitwise.com/assets/api/payment_icon/square/small/offline.png'} style={{ width: "2rem" }} />{' '}
+                                    <b>{props.transaction.from.first_name}</b>
+                                    {' paid to '}
+                                    <b>{props.transaction.to[0].first_name}</b>{' #settleup '}
+                                </div>
+                            )}
                         </Row>
                     </Col>
-                    <Col sm={4}><ConnectedPayerTransactionBanner transaction={props.transaction} /></Col>
-                    <Col sm={4}><ConnectedLentTransactionBanner transaction={props.transaction} /></Col>
+                    {props.transaction.type !== SETTLEUP_TXN ?
+                        <>
+                            <Col sm={4}>
+                                <ConnectedPayerTransactionBanner transaction={props.transaction} />
+                            </Col>
+                            <Col sm={4}>
+                                <ConnectedLentTransactionBanner transaction={props.transaction} />
+                            </Col></> :
+                        <Col sm={7} style={{ textAlign: "center", marginLeft: '22rem' }}>
+                            <div>Settled amount</div>
+                            <div style={{ color: 'blue' }}><LocalizedAmount amount={props.transaction.amount} currency={props.transaction.currency_code} /></div>
+                        </Col>}
                 </Row>
             </Container>
         </Accordion.Toggle>
@@ -107,12 +127,12 @@ function convertToUiTransactionView(transaction) {
     const amount = transaction.amount;
     const totalpayees = transaction.to.length;
 
-    const amountPerMember = amount / (totalpayees + 1);
+    const amountPerMember = (transaction.type === SETTLEUP_TXN) ? amount : (amount / (totalpayees + 1));
     transaction.to = transaction.to.map((payee) => {
         payee.oweAmount = amountPerMember;
         return payee;
     });
-    transaction.lentAmount = amount * totalpayees / (totalpayees + 1);
+    transaction.lentAmount = (transaction.type === SETTLEUP_TXN) ? amount : (amount * totalpayees / (totalpayees + 1));
     return transaction;
 }
 

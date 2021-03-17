@@ -1,16 +1,30 @@
-import { Col, Container, Image, Row } from 'react-bootstrap';
+import { Image } from 'react-bootstrap';
 import { connect } from 'react-redux';
 import { getDefaultGroupImage, getDefaultUserImage } from '../../_constants/avatar';
 import { convertAmount, formatMoney } from '../../_helper/money';
 
-const Avatar = (props) => (
-  <>
+function Avatar(props) {
+  return <>
     <Image
       style={{ width: '27px', height: '27px', borderRadius: '14px' }}
       src={props.avatar || props.defaultAvatar}
       roundedCircle
     />{' '}
-    <b>{props.label}</b>
+    <b style={props.textColor ? { 'text-color': props.textColor } : null}>{props.label}</b>
+  </>;
+}
+
+export const ProfileAvatar = (props) => (
+  <>
+    <div style={{ display: 'flex', alignItems: 'center', textAlign: 'center' }}>
+      <div><Image
+        style={{ width: '45px', height: '45px', borderRadius: '22px', border: '2px solid white', marginRight: '1rem' }}
+        src={props.user.avatar || getDefaultUserImage()}
+        roundedCircle
+      />
+      </div>
+      <div style={{ 'color': 'white', marginRight: '1rem', fontSize: '2rem', fontWeight: '500' }}>{props.user.first_name}</div>
+    </div>
   </>
 );
 
@@ -20,7 +34,7 @@ export const GroupAvatar = (props) => <Avatar avatar={props.group.avatar} defaul
 
 const LocalizedAmount = (props) => {
   const destinationCurrencyCode = props.user.default_currency;
-  const convertedAmount = convertAmount(props.amount, props.currency || 'USD', destinationCurrencyCode);
+  const convertedAmount = convertAmount(Math.abs(props.amount), props.currency || 'USD', destinationCurrencyCode);
   const formattedAmount = formatMoney(convertedAmount, destinationCurrencyCode);
   return <b>{formattedAmount}</b>;
 }

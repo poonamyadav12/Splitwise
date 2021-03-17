@@ -1,10 +1,7 @@
 var Joi = require('joi');
-//const { Sequelize } = require('sequelize');
-
 const { DB_USERNAME, DB_PASSWORD, DB_NAME, CLOUD_SQL_CONNECTION_NAME } = require("../database/constants");
 import { connection } from '../database/mysql.js';
-import { ActivityType } from '../dataschema/activity_schema.js';
-import { RegistrationStatus, userschema } from '../dataschema/user_schema.js';
+import { RegistrationStatus, updateuserschema, userschema } from '../dataschema/user_schema.js';
 
 export async function createUser(req, res) {
     console.log("Inside create user post Request");
@@ -20,17 +17,74 @@ export async function createUser(req, res) {
     const user = value.user;
     let conn;
     try {
-        console.log("createUser: " + JSON.stringify(user));
         conn = await connection();
         const storedUser = await getUserById(conn, user.email);
 
-        console.log("storedUser  " + storedUser);
         if (storedUser && isUserInvited(storedUser)) {
             await updateUser(conn, user);
         } else {
             await insertUser(conn, user);
         }
 
+    } catch (err) {
+        console.log(err);
+        res.status(500)
+            .send({
+                code: err.code,
+                msg: 'Unable to successfully insert the user! Please check the application logs for more details.',
+            }
+            ).end();
+        return;
+    } finally {
+        conn && conn.release();
+    }
+    res.status(200).cookie('cookie', user.email, { maxAge: 900000, httpOnly: false, path: '/' }).send(user).end();
+}
+
+export async function updateExistingUser(req, res) {
+    console.log("Inside update user post Request");
+    const { error, value } = Joi.object().keys(
+        { user: updateuserschema.required(), }
+    ).validate(req.body);
+
+    if (error) {
+        res.status(400).send(error.details);
+        return;
+    }
+
+    const user = value.user;
+    let conn;
+    try {
+        conn = await connection();
+        const storedUser = JSON.parse(await getUserById(conn, user.email));
+
+        if (!storedUser) {
+            res.status(500)
+                .send({
+                    code: 'INVALID_USER_ID',
+                    msg: 'Invalid user ID.',
+                }
+                ).end();
+            return;
+        }
+
+        console.log("current user  " + JSON.stringify(user));
+        console.log('new user password', user.password)
+
+        if (storedUser.password !== user.password) {
+            res.status(500)
+                .send({
+                    code: 'INVALID_PASSWORD',
+                    msg: 'Invalid password.',
+                }
+                ).end();
+            return;
+        }
+        if (user.new_password) {
+            user.password = user.new_password;
+            delete user.new_password;
+        }
+        await updateUser(conn, user);
     } catch (err) {
         console.log(err);
         res.status(500)
@@ -116,10 +170,8 @@ export async function getUserById(conn, userId) {
 }
 
 async function getUserByIdAndPassword(conn, userId, password) {
-    console.log("UserId " + userId + " password " + password)
     const stmt = 'SELECT User FROM Users WHERE UserId=? AND  JSON_EXTRACT(User, "$.password")=?';
     const result = await conn.query(stmt, [userId, password]);
-    console.log("Result of login " + JSON.stringify(result));
     if (result.length > 0) {
         return JSON.parse(JSON.stringify(result))[0].User;
     }
@@ -139,7 +191,6 @@ export async function getUsersBySearchString(req, res) {
     try {
         conn = await connection();
         const users = await searchUsers(conn, searchString, limit);
-        console.log("Users" + JSON.stringify(users));
         res.status(200).send(users).end();
     } catch (err) {
         console.log(err);

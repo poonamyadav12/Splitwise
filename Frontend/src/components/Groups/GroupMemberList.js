@@ -48,19 +48,19 @@ export const GroupMemberList = (props) => {
           <Row>
             <Col sm={2}>
               <Form.Group controlId={`formName${index}`}>
-                {member.initial ? <Form.Label><h5>{member.first_name}{' '}{member.last_name}</h5></Form.Label> : <UserTypeHead key={member.first_name + index} skipCurrentUser={true} initialValue={member} onChange={handleNameChange.bind(null, index)} style={{ 'font-size': '18px', width: '17.5rem' }} />}
+                {member.initial ? <Form.Label><h5>{member.first_name}{' '}{member.last_name}</h5></Form.Label> : <UserTypeHead key={member.first_name + index} skipCurrentUser={true} initialValue={member} onChange={handleNameChange.bind(null, index)} style={{ fontSize: '18px', width: '17.5rem' }} />}
               </Form.Group>
             </Col>
             <Col sm={2}>
               <Form.Group controlId={`formEmail${index}`}>
                 {member.initial ? <Form.Label><h5>{member.email}</h5></Form.Label> :
-                  <Form.Control type="text" style={{ 'font-size': '18px', width: '19rem' }}
+                  <Form.Control type="text" style={{ fontSize: '18px', width: '19rem' }}
                     value={member.email ? member.email : null}
                     placeholder="Email" onChange={handleEmailChange.bind(null, index)} />}
               </Form.Group>
             </Col>
             <Col sm={1} style={{ 'text-align': 'center' }}>
-              {!member.initial && <MdRemoveCircleOutline onClick={handleDelete.bind(null, index)} style={{ height: '27px', width: '25px', 'vertical-align': 'text-top' }} />}
+              {!member.initial && <MdRemoveCircleOutline onClick={handleDelete.bind(null, index)} style={{ height: '27px', width: '25px', verticalAlign: 'text-top' }} />}
             </Col>
           </Row>
         </Container>

@@ -116,3 +116,15 @@
     width: 800px !important; /* New width for default modal */
   }
 }
+.dropdown-menu {
+  padding: 0px !important;
+}
+.hidden-text {
+  display: none;
+  border: 1px solid green;
+}
+
+.hidden-text:hover {
+  display: block;
+  border: 1px solid blue;
+}

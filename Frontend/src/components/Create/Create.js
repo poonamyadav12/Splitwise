@@ -59,7 +59,6 @@ class Create extends Component {
         }
         axios.post('http://localhost:3001/create', data)
             .then(response => {
-                console.log("Status Code : ", response.status);
                 if (response.status === 200) {
                     this.setRedirect();
                     this.renderRedirect();
