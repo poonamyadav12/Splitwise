@@ -40,10 +40,10 @@ function SettleUpModal(props) {
 
     try {
       const response = await axios.post('http://localhost:3001/transactions/settle', settlementTxns);
-      props.reloadDashboardView();
+      await props.reloadDashboardView();
       props.closeModal();
     } catch (error) {
-      const data = error.response.data;
+      const data = error?.response?.data;
       const msg = Array.isArray(data) ? data.map(d => d.message) : ["Some error occured, please try again."];
       setErrorMsg(msg);
     }
@@ -65,7 +65,7 @@ function SettleUpModal(props) {
       >
         <Modal.Header closeButton>
           <Modal.Title><h2>SETTLE UP BALANCE</h2></Modal.Title>
-          <AlertMessages messages={errorMsg} />
+          <AlertMessages type="danger" messages={errorMsg} />
         </Modal.Header>
         <Modal.Body>
           <Container>

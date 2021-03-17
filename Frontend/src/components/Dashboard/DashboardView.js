@@ -77,7 +77,7 @@ class DashboardView extends React.Component {
             <Col sm={6} style={{ height: "90vh", borderRight: "1px solid grey" }}>
               <h3>YOU OWE</h3>
               <ListGroup>
-                {negativeFriendBalances.length > 0 ? negativeFriendBalances.map((friendBalance) => <BalanceView data={friendBalance} user={this.props.user} />) : null}
+                {negativeFriendBalances.length > 0 ? negativeFriendBalances.map((friendBalance) => <BalanceView data={friendBalance} user={this.props.user} reloadDashboardView={this.forceReload.bind(this)} setFriendView={this.props.setFriendView} setGroupView={this.props.setGroupView} />) : null}
               </ListGroup></Col>
             <Col sm={6}>
               <h3>YOU ARE OWED</h3>
