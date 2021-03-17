@@ -7,15 +7,13 @@ import { history } from '../_helper/history.js';
 export const userActions = {
     login,
     logout,
-    register
+    register,
+    update,
 };
 
 function login(username, password) {
-
     return async dispatch => {
-
         dispatch(request({ username }));
-        console.log("Inside user Action ");
         const data = {
             id: username,
             password: password
@@ -29,7 +27,6 @@ function login(username, password) {
             dispatch(success(response.data));
         }
         catch (error) {
-            console.log("Erro " + JSON.stringify(error));
             const msg = (error?.response?.data?.code === "INVALID_LOGIN") ? ["Invalid user ID or password"] : Array.isArray(data) ? data.map(d => d.message) : ["Some error occured, please try again."];
             dispatch(failure(msg));
             dispatch(alertActions.error(msg));
@@ -37,15 +34,13 @@ function login(username, password) {
     };
 
     function request(user) { return { type: userConstants.LOGIN_REQUEST, user } }
-    function success(user) { 
-        localStorage.setItem("user", JSON.stringify(user));    
-        return { type: userConstants.LOGIN_SUCCESS, user } 
+    function success(user) {
+        return { type: userConstants.LOGIN_SUCCESS, user }
     }
     function failure(error) { return { type: userConstants.LOGIN_FAILURE, error } }
 }
 
 function logout() {
-    console.log("Logou called ");
     cookie.remove('cookie', { path: '/' });
     return ({ type: userConstants.LOGOUT });
 }
@@ -56,10 +51,8 @@ function register(data) {
         try {
             const response = await axios.post('http://localhost:3001/user/signup', data);
             dispatch(success(response.data));
-            dispatch({ type: userConstants.LOGIN_SUCCESS, user:response.data })
             history.push('/signup');
         } catch (error) {
-            console.log("Error " + JSON.stringify(error));
             const data = error.response.data;
             const msg = (data && data?.code === "ER_DUP_ENTRY") ? ["User ID already exists, please login"] : Array.isArray(data) ? data.map(d => d.message) : ["Some error occured, please try again."];
             dispatch(failure(msg));
@@ -71,4 +64,39 @@ function register(data) {
     function request(user) { return { type: userConstants.REGISTER_REQUEST, user } }
     function success(user) { return { type: userConstants.REGISTER_SUCCESS, user } }
     function failure(error) { return { type: userConstants.REGISTER_FAILURE, error } }
+}
+
+function update(data) {
+    return async dispatch => {
+        dispatch(request(data));
+        try {
+            const response = await axios.put('http://localhost:3001/user/update', data);
+            dispatch(success(response.data));
+            dispatch(alertActions.success('User updated successfully'));
+        } catch (error) {
+            const data = error.response.data;
+            let msg = ["Some error occured, please try again."];
+            if (data && data?.code) {
+                switch (data?.code) {
+                    case "INVALID_USER_ID":
+                        msg = ["Invalid user ID"];
+                        break;
+                    case "INVALID_PASSWORD":
+                        msg = ["Invalid current password"];
+                        break;
+                    default:
+                    // Fall through.
+                }
+            } else if (Array.isArray(data)) {
+                msg = data.map(d => d.message);
+            }
+            dispatch(failure(msg));
+            dispatch(alertActions.error(msg));
+        }
+
+    };
+
+    function request(user) { return { type: userConstants.UPDATE_REQUEST, user } }
+    function success(user) { return { type: userConstants.UPDATE_SUCCESS, user } }
+    function failure(error) { return { type: userConstants.UPDATE_FAILURE, error } }
 }

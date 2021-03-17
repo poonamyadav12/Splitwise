@@ -1,16 +1,16 @@
 import React, { Component, useState } from 'react';
-import { Route, Switch, withRouter, useLocation } from 'react-router-dom';
-import { Login } from './Login/Login';
-import { Home } from './Home/Home';
-import Delete from './Delete/Delete';
-import Create from './Create/Create';
-import { Navbar } from './LandingPage/Navbar';
-import Groups from './Groups/AddGroup';
-import { Signup } from './Signup/Signup';
+import { Button, Container } from 'react-bootstrap';
 import { connect } from 'react-redux';
+import { Route, Switch, withRouter } from 'react-router-dom';
 import { alertActions } from '../_actions';
-import { Alert, Button, Container } from 'react-bootstrap';
 import { AlertMessages } from './Alert/Alert';
+import Create from './Create/Create';
+import Delete from './Delete/Delete';
+import { Home } from './Home/Home';
+import { Navbar } from './LandingPage/Navbar';
+import { Login } from './Login/Login';
+import { Profile } from './Profile/Profile';
+import { Signup } from './Signup/Signup';
 
 //Create a Main Component
 class Main extends Component {
@@ -28,7 +28,7 @@ class Main extends Component {
             <Container fluid>
                 <Navbar />
 
-                {alert.messages && <AlertBar messages={alert.messages} />}
+                {alert.messages && <AlertBar type={alert.type} messages={alert.messages} />}
                 <div>
 
                     <Switch>
@@ -37,7 +37,7 @@ class Main extends Component {
                         <Route path="/delete" component={Delete} />
                         <Route path="/create" component={Create} />
                         <Route path="/signup" component={Signup} />
-                        <Route path="/addGroup" component={Groups} />
+                        <Route path="/profile" component={Profile} />
                     </Switch>
 
                 </div>
@@ -50,7 +50,7 @@ const AlertBar = props => {
     const [show, setShow] = useState(true);
 
     if (show) {
-        return <AlertMessages messages={props.messages} />;
+        return <AlertMessages type={props.type} messages={props.messages} />;
     }
     return <Button variant="danger" onClick={() => setShow(true)}>Show Alert</Button>;
 }

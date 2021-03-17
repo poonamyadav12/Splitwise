@@ -1,11 +1,12 @@
-import { connection, getConnection, getPool } from '../database/mysql.js';
+import { v4 as uuidv4 } from 'uuid';
+import { connection } from '../database/mysql.js';
 import { ActivityType } from '../dataschema/activity_schema.js';
 import { groupschema } from '../dataschema/group_schema.js';
 import { insertActivity } from './activity_api.js';
 import { getTransactionsByGroupId } from './transactions_api.js';
-import { insertIfNotExist, getUserById } from './user_api.js';
-import { v4 as uuidv4 } from 'uuid';
+import { getUserById, insertIfNotExist } from './user_api.js';
 var Joi = require('joi');
+var _ = require('lodash');
 
 export async function createOrUpdateGroup(req, res) {
     console.log("Inside create group post Request");
@@ -19,7 +20,6 @@ export async function createOrUpdateGroup(req, res) {
     }
 
     const group = value.group;
-    console.log(JSON.stringify(group));
     const isUpdate = !!group.id;
     const stmt = isUpdate ? 'UPDATE GroupInfos SET GroupInfo=? WHERE GroupId=?' : 'INSERT INTO GroupInfos(GroupInfo) VALUES (?)';
     let conn;
@@ -31,13 +31,21 @@ export async function createOrUpdateGroup(req, res) {
             modifiedGroup.id = uuidv4();
             group.id = modifiedGroup.id;
         }
+
         modifiedGroup.members = group.members.map((member) => member.email);
-        console.log("modified " + JSON.stringify(modifiedGroup));
         await conn.query(stmt, isUpdate ? [JSON.stringify(modifiedGroup), group.id] : [JSON.stringify(modifiedGroup)]);
         await Promise.all(group.members.map((member) =>
             insertIfNotExist(conn, member)));
-        await insertActivity(conn, buildGroupCreatedActivity(group.creator, group));
-        await Promise.all(group.members.map((member) => insertActivity(conn, buildMemberAddedActivity(group.creator, group, member))));
+        if (!isUpdate) {
+            await insertActivity(conn, buildGroupCreatedActivity(group.creator, group));
+        }
+        if (isUpdate) {
+            const storedGroup = JSON.parse(await getGroupById(conn, groupId));
+            const newMembers = _.difference(group.to, storedGroup.to);
+            await Promise.all(newMembers.map((member) => insertActivity(conn, buildMemberAddedActivity(group.creator, group, member))));
+        } else {
+            await Promise.all(group.members.map((member) => insertActivity(conn, buildMemberAddedActivity(group.creator, group, member))));
+        }
 
         await conn.commit();
 
@@ -59,9 +67,52 @@ export async function createOrUpdateGroup(req, res) {
     }
 }
 
-export async function getGroupDetails(req, res) {
+export async function leaveGroup(req, res) {
+    console.log("Inside leave group post Request");
+    const { error, value } = Joi.object().keys(
+        {
+            groupId: Joi.string().required(),
+            userId: Joi.string().required()
+        }
+    ).validate(req.body);
 
-    // Access the provided 'page' and 'limt' query parameters
+    if (error) {
+        res.status(400).send(error.details);
+        return;
+    }
+
+    const { groupId, userId } = value;
+    const stmt = 'UPDATE GroupInfos SET GroupInfo=? WHERE GroupId=?';
+    let conn;
+    try {
+        conn = await connection();
+        await conn.beginTransaction();
+        const storedGroup = JSON.parse(await getGroupById(conn, groupId));
+        storedGroup.members = storedGroup.members.filter((memberEmail) => memberEmail !== userId);
+        await conn.query(stmt, [JSON.stringify(storedGroup), storedGroup.id]);
+        const user = JSON.parse(await getUserById(conn, userId));
+        await insertActivity(conn, buildMemberDeletedActivity(user.email, storedGroup, user));
+        await conn.commit();
+
+        res.status(200).send(storedGroup).end();
+    } catch (err) {
+        await conn.rollback();
+        console.log(err);
+        res
+            .status(500)
+            .send(
+                {
+                    code: err.code,
+                    msg: 'Unable to successfully insert/update the Group! Please check the application logs for more details.'
+                }
+            )
+            .end();
+    } finally {
+        conn && conn.release();
+    }
+}
+
+export async function getGroupDetails(req, res) {
     let groupId = req.query.groupId;
     if (!groupId) {
         res
@@ -102,7 +153,6 @@ export async function getGroupDetails(req, res) {
 }
 
 export async function getAllGroupsForUser(req, res) {
-
     // Access the provided 'page' and 'limt' query parameters
     let userId = req.query.userId;
     if (!userId) {
@@ -123,17 +173,14 @@ export async function getAllGroupsForUser(req, res) {
     try {
         conn = await connection();
         const groups = await getGroupsByUserId(conn, userId);
-        console.log("Groups " + JSON.stringify(groups));
         const modifiedGroups = await Promise.all(groups.map(async (group) => {
             const members = await Promise.all(group.members.map((member) => getUserById(conn, member)));
             const modifiedGroup = JSON.parse(JSON.stringify(group));
             modifiedGroup.members = members.map((m) => JSON.parse(m));
-            console.log("modified " + JSON.stringify(modifiedGroup));
             const transactions = await getTransactionsByGroupId(conn, group.id);
             modifiedGroup.transactions = transactions;
             return modifiedGroup;
         }));
-        console.log("Groups 2" + JSON.stringify(groups));
 
         res.status(200).send(modifiedGroups).end();
     } catch (err) {
@@ -187,6 +234,21 @@ function buildMemberAddedActivity(creator, group, member) {
             name: member.name,
         },
         type: ActivityType.MEMBER_ADDED
+    }));
+}
+
+function buildMemberDeletedActivity(creator, group, member) {
+    return JSON.parse(JSON.stringify({
+        user_id: creator,
+        group: {
+            id: group.id,
+            name: group.name
+        },
+        deleted: {
+            email: member.email,
+            name: member.name,
+        },
+        type: ActivityType.MEMBER_DELETED
     }));
 }
 

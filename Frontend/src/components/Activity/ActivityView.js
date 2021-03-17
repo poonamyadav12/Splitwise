@@ -1,21 +1,13 @@
-import React, { Component, useEffect, useState } from 'react';
 import axios from 'axios';
-import { Redirect } from 'react-router';
-import cookie from 'react-cookies';
-import { ListGroup, Card, ButtonGroup, Button, Container, Row, Col, Form, InputGroup, FormControl, Alert } from 'react-bootstrap';
-import { GrGroup } from 'react-icons/gr';
-import { TransactionView } from '../Transactions/TransactionView';
-import { alertActions } from '../../_actions';
+import React from 'react';
+import { Card, Container, ListGroup, Row } from 'react-bootstrap';
 import { connect } from 'react-redux';
-import { Modal } from 'react-bootstrap';
-import CurrencyInput from 'react-currency-input';
-import { AlertMessages } from '../Alert/Alert';
+import { alertActions } from '../../_actions';
 import { GroupAvatar } from '../Shared/Shared';
 var dateFormat = require("dateformat");
 
 
 class ActivityView extends React.Component {
-
     constructor(props) {
         super(props);
         this.state = { recentActivities: [], };
@@ -36,7 +28,6 @@ class ActivityView extends React.Component {
                 });
             }
         } catch (err) {
-            console.log("Error in Group View " + err);
             this.props.errorAlert(["Something went wrong. Please try again"]);
         }
     }
@@ -49,14 +40,12 @@ class ActivityView extends React.Component {
         return <>
             {this.state.recentActivities.length > 0 && <Card>
                 <Card.Header>
-
                     <ListGroup.Item>
                         <h3> Recent Activity</h3>
                     </ListGroup.Item>
-
                 </Card.Header>
                 <ListGroup>
-                    {this.state.recentActivities.map((activity,index) => <ConnectedSingleActivityView activity={activity} setGroupView={this.props.setGroupView} index={index}></ConnectedSingleActivityView>)}
+                    {this.state.recentActivities.map((activity, index) => <ConnectedSingleActivityView activity={activity} setGroupView={this.props.setGroupView} index={index}></ConnectedSingleActivityView>)}
                 </ListGroup>
             </Card>}
         </>;
@@ -75,6 +64,9 @@ const SingleActivityView = (props) => {
         case 'MEMBER_ADDED':
             header = <><b>{createrName}</b>&nbsp;added {' '}<b>{props.activity.added.first_name}</b>{' in '}<b>{groupName}</b></>;
             break;
+        case 'MEMBER_DELETED':
+            header = <><b>{createrName}</b>&nbsp;left {' '}<b>{props.activity.deleted.first_name}</b>{' '}<b>{groupName}</b></>;
+            break;
         case 'TRANSACTION_ADDED':
             header = <><b>{createrName}</b>&nbsp;added {' '}<b>{props.activity.transaction.description}</b>{' in '}<b>{groupName}</b></>;
             break;
@@ -84,16 +76,16 @@ const SingleActivityView = (props) => {
 
     const date = props.activity.createdAt;
     return (
-    <ListGroup.Item key={props.index} onClick={()=>props.setGroupView(props.activity.group.id)}>
-        <Container>
-            <Row>
-                <div><GroupAvatar group={props.activity.group}/>{header}</div>
-            </Row>
-            <Row>
-                <div>{dateFormat(date, "mmm d")}</div>
-            </Row>
-        </Container>
-    </ListGroup.Item>);
+        <ListGroup.Item key={props.index} onClick={() => props.setGroupView(props.activity.group.id)}>
+            <Container>
+                <Row>
+                    <div><GroupAvatar group={props.activity.group} />{header}</div>
+                </Row>
+                <Row>
+                    <div>{dateFormat(date, "mmm d")}</div>
+                </Row>
+            </Container>
+        </ListGroup.Item>);
 }
 
 

@@ -1,16 +1,12 @@
-import React, { Component, useEffect, useState } from 'react';
 import axios from 'axios';
-import { Redirect } from 'react-router';
-import cookie from 'react-cookies';
-import { ListGroup, Card, ButtonGroup, Button, Container, Row, Col, Form, InputGroup, FormControl, Alert } from 'react-bootstrap';
-import { GrGroup, GrUser } from 'react-icons/gr';
-import { TransactionView } from '../Transactions/TransactionView';
-import { alertActions } from '../../_actions';
+import React from 'react';
+import { Card, Col, Container, Row } from 'react-bootstrap';
 import { connect } from 'react-redux';
-import { Modal } from 'react-bootstrap';
-import CurrencyInput from 'react-currency-input';
-import { AlertMessages } from '../Alert/Alert';
-import { UserAvatar } from '../Shared/Shared';
+import { alertActions } from '../../_actions';
+import { calculateDebt } from '../../_helper/debtcalculator';
+import { getRoundedAmount } from '../../_helper/money';
+import { LocalizedAmount, UserAvatar } from '../Shared/Shared';
+import { TransactionView } from '../Transactions/TransactionView';
 
 
 class FriendView extends React.Component {
@@ -36,7 +32,6 @@ class FriendView extends React.Component {
                 });
             }
         } catch (err) {
-            console.log("Error in Group View " + err);
             this.props.errorAlert(["Something went wrong. Please try again"]);
         }
     }
@@ -46,11 +41,29 @@ class FriendView extends React.Component {
     }
 
     render() {
+        let balance = null;
+        let color = null;
+        let suffix = null;
+        let totalAmount = 0;
+        if (this.props.friend) {
+            balance = calculateDebt(this.props.user, this.state.transactions, true);
+            totalAmount = getRoundedAmount(balance.totalAmount);
+            color = totalAmount === 0 ? 'orange' : (totalAmount > 0 ? 'green' : 'red');
+            suffix = totalAmount === 0 ? "settled up" :
+                (totalAmount < 0 ? ' gets back ' : ' owes you ');
+        }
         return <>
-            {this.props.friend && <Card>
-                <FriendHeader data={{ friend: this.props.friend }} reload={this.forceReload.bind(this)} />
-                {this.state.transactions && <TransactionView transactions={this.state.transactions} />}
-            </Card>}
+            <Col lg={8} key={this.props?.friend}>
+                {this.props.friend && <Card>
+                    <FriendHeader data={{ friend: this.props.friend }} reload={this.forceReload.bind(this)} />
+                    {this.state.transactions && <TransactionView transactions={this.state.transactions} />}
+                </Card>}
+            </Col>
+            <Col lg={2}>
+                {this.props.friend && this.state.transactions && this.state.transactions.length > 0 &&
+                    <><UserAvatar user={this.props.friend} /><div style={{ marginLeft: '3rem', marginTop: '-1rem' }} className="h4"><span style={{ color }}>{suffix}
+                        {totalAmount !== 0 && <LocalizedAmount amount={balance.totalAmount} currency={this.props.user.default_currency} />}</span></div></>}
+            </Col>
         </>;
     }
 }

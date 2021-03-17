@@ -14,5 +14,6 @@ export const txnschema = Joi.object().keys(
         group_id: Joi.string().required(),
         description: Joi.string().required(),
         status: Joi.string().default(TransactionStatus.ACTIVE),
+        type: Joi.string().default('TRANSACTION'),
     }
 );

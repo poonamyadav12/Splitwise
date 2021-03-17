@@ -1,12 +1,9 @@
+import React, { Component } from 'react';
+import { Card, ListGroup } from 'react-bootstrap';
 import { FaTag } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
-import { ListGroup, Card, Button } from 'react-bootstrap';
-import { Redirect } from 'react-router';
-import axios from 'axios';
-import cookie from 'react-cookies';
-import React, { Component } from 'react';
-
 import '../../App.css';
+
 
 export class GroupList extends Component {
 
@@ -15,7 +12,7 @@ export class GroupList extends Component {
             {this.props.groups.length > 0 ?
                 <ListGroup variant="flush">
                     {this.props.groups.map((group) =>
-                        <ListGroup.Item key={group.id}><GroupName groupName={group.name} groupId={group.id} setGroupView={this.props.setGroupView} /></ListGroup.Item>
+                        <ListGroup.Item style={this.props.focussed && this.props.selectedId === group.id ? { backgroundColor: 'lightgray' } : null} key={group.id}><GroupName groupName={group.name} groupId={group.id} setGroupView={this.props.setGroupView} /></ListGroup.Item>
                     )}
                 </ListGroup> : "No Groups to show"
             }

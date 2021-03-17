@@ -11,7 +11,7 @@ export class FriendList extends Component {
             {this.props.friends.length > 0 ?
                 <ListGroup variant="flush">
                     {this.props.friends.map((friend) =>
-                        <ListGroup.Item key={friend.email}><FriendName friendName={friend.first_name} friend={friend} setFriendView={this.props.setFriendView} /></ListGroup.Item>
+                        <ListGroup.Item style={this.props.focussed && this.props.selectedId?.email === friend.email ? { backgroundColor: 'lightgray' } : null} key={friend.email}><FriendName friendName={friend.first_name} friend={friend} setFriendView={this.props.setFriendView} /></ListGroup.Item>
                     )}
                 </ListGroup> : "No Friends to show"
             }

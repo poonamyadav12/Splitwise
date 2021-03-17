@@ -2,6 +2,8 @@ import axios from "axios";
 var _ = require('lodash');
 var numeral = require('numeral');
 
+export const SETTLEUP_TXN = "SETTLEUP";
+
 export const CURRENCY = [
   { 'name': "USD" },
   { 'name': "KWD" },
@@ -23,37 +25,31 @@ export const COUNTRY = Object.freeze(
 
 export const CURRENCYFORMAT = Object.freeze(
   {
-    USD: '$0,0[.]00',
-    KWD: 'KD0,0[.]00',
-    BHD: 'BD0,0[.]00',
-    GBP: '£0,0[.]00',
-    EUR: '€0,0[.]00',
-    CAD: 'C$0,0[.]00',
+    USD: '$',
+    KWD: 'KD',
+    BHD: 'BD',
+    GBP: '£',
+    EUR: '€',
+    CAD: 'C$',
   }
 );
 
 export const formatMoney = (amount, currencyCode) => {
-  return numeral(amount).format(CURRENCYFORMAT[currencyCode]);
+  return `${CURRENCYFORMAT[currencyCode]}${numeral(getRoundedAmount(Math.abs(amount))).format('0,0[.]00')}`;
 }
 
 // 996f6a1ca5b62e3880e60c32e1f21a1c
 // http://data.fixer.io/api/latest?access_key=996f6a1ca5b62e3880e60c32e1f21a1c&symbols=USD,KWD,GBP,EUR,BHD,CAD
+var rates = { "USD": 1.189902, "KWD": 0.359339, "GBP": 0.857081, "EUR": 1, "BHD": 0.448643, "CAD": 1.481833 };
 
-var rates = [];
-const getExchangeRates = () => {
-  axios.get(`http://data.fixer.io/api/latest?access_key=996f6a1ca5b62e3880e60c32e1f21a1c&symbols=USD,KWD,GBP,EUR,BHD,CAD`).then(
-    (response) => {
-      rates = response.data.rates;
-    }
-  );
-}
-getExchangeRates();
-
-export const convertAmount = (amount, sourceCurrencyCode, trargetCurrencyCode) => {
-  const cachedExchangedRates = rates;
-  const sourceRate = cachedExchangedRates[sourceCurrencyCode];
-  const destinationRate = cachedExchangedRates[trargetCurrencyCode];
+export const convertAmount = (amount, sourceCurrencyCode = 'USD', trargetCurrencyCode = 'USD') => {
+  const sourceRate = rates[sourceCurrencyCode];
+  const destinationRate = rates[trargetCurrencyCode];
   const amountProcessed = (destinationRate * amount) / sourceRate;
   return amountProcessed;
 }
+
+export const getRoundedAmount = (amount) => {
+  return Math.round((amount + Number.EPSILON) * 100) / 100;
+};
 

@@ -1,10 +1,10 @@
+import { v4 as uuidv4 } from 'uuid';
 import { connection } from '../database/mysql.js';
 import { activitySchema } from '../dataschema/activity_schema.js';
-import { v4 as uuidv4 } from 'uuid';
+var _ = require('lodash');
 var Joi = require('joi');
 
 export async function insertActivity(conn, activity) {
-
     console.log("Inside create Activity post Request");
     const { error, value } = activitySchema.validate(activity);
 
@@ -12,7 +12,7 @@ export async function insertActivity(conn, activity) {
         throw error;
     }
 
-    console.log(JSON.stringify(activity));
+    console.log('Activity', JSON.stringify(activity));
     const stmt = 'INSERT INTO Activities(Activity) VALUES (?)';
     const modifiedActivity = JSON.parse(JSON.stringify(activity));
     modifiedActivity.id = uuidv4();
@@ -91,25 +91,31 @@ export async function getActivitiesByUserId(conn, userId) {
     FROM \
     Activities A \
     WHERE \
-    A.GroupId IN ( \
+    ( A.GroupId IN ( \
         SELECT \
             G.GroupId \
         FROM \
             GroupInfos G \
         WHERE \
             ? MEMBER OF(JSON_EXTRACT(G.GroupInfo, "$.members")) \
-    ) \
+    )) \
+    OR \
+    ((A.Activity ->> "$.user_id") = ?) \
+    OR \
+    (? MEMBER OF(JSON_EXTRACT(A.Activity, "$.transaction.to"))) \
+    OR \
+    ((A.Activity ->> "$.transaction.from") = ?) \
     ORDER BY \
     A.CreatedAt DESC;';
 
-    const result = await conn.query(stmt, [userId]);
+    const result = await conn.query(stmt, [userId, userId, userId, userId]);
     console.log("Inside getActivitiesByUserId " + JSON.stringify(result));
 
     if (result.length > 0) {
-        return JSON.parse(JSON.stringify(result)).map((value) => {
+        return JSON.parse(JSON.stringify(_.uniqWith(result, v => v.Activity.id))).map((value) => {
             const activity = JSON.parse(value.Activity);
             activity.creator = JSON.parse(value.Creator);
-            if(value.Added) activity.added = JSON.parse(value.Added);
+            if (value.Added) activity.added = JSON.parse(value.Added);
             activity.group = JSON.parse(value.GroupInfo);
             activity.createdAt = value.CreatedAt;
             return activity;

@@ -1,16 +1,15 @@
-import React, { Component, useEffect, useState } from 'react';
 import axios from 'axios';
-import { Redirect } from 'react-router';
-import cookie from 'react-cookies';
-import { ListGroup, Card, ButtonGroup, Button, Container, Row, Col, Form, InputGroup, FormControl, Alert } from 'react-bootstrap';
-import { GrEdit } from 'react-icons/gr';
-import { TransactionView } from '../Transactions/TransactionView';
-import { alertActions } from '../../_actions';
-import { connect } from 'react-redux';
-import { Modal } from 'react-bootstrap';
+import React, { useState } from 'react';
+import { Button, Card, Col, Container, Form, InputGroup, ListGroup, Modal, Row } from 'react-bootstrap';
 import CurrencyInput from 'react-currency-input';
+import { GrEdit } from 'react-icons/gr';
+import { connect } from 'react-redux';
+import { alertActions } from '../../_actions';
+import { calculateDebtForAGroup } from '../../_helper/debtcalculator';
+import { getRoundedAmount } from '../../_helper/money';
 import { AlertMessages } from '../Alert/Alert';
-import { GroupAvatar } from '../Shared/Shared';
+import { GroupAvatar, LocalizedAmount, UserAvatar } from '../Shared/Shared';
+import { TransactionView } from '../Transactions/TransactionView';
 import { GroupCreateOrUpdateModal } from './GroupCreateOrUpdateModel';
 
 
@@ -32,16 +31,31 @@ class GroupView extends React.Component {
                     axios.get('http://localhost:3001/group/get?groupId=' + this.props.groupId),
                     axios.get('http://localhost:3001/group/transactions?groupId=' + this.props.groupId),
                 ]);
-                console.log("Response " + JSON.stringify(groupRes));
-                console.log("Response 2 " + JSON.stringify(txnRes));
                 this.setState({
                     group: groupRes.data,
                     transactions: txnRes.data,
                 });
+
             }
         } catch (err) {
-            console.log("Error in Group View " + err);
             this.props.errorAlert(["Something went wrong. Please try again"]);
+        }
+    }
+
+    async leaveGroup() {
+        const data = {
+            groupId: this.state.group.id,
+            userId: this.props.user.email,
+        };
+        try {
+            const response = await axios.post('http://localhost:3001/group/leave', data);
+
+            this.props.reloadHomeView();
+            this.props.setDashboardView();
+        } catch (error) {
+            const data = error.response.data;
+            const msg = Array.isArray(data) ? data.map(d => d.message) : ["Some error occured, please try again."];
+            this.props.errorAlert(msg);
         }
     }
 
@@ -50,13 +64,52 @@ class GroupView extends React.Component {
     }
 
     render() {
+        let balances = null;
+        let canLeave = false;
+        if (this.state.group) {
+            balances = calculateDebtForAGroup(this.state.group, this.state.transactions);
+            const usersBalance = balances.filter((balance) => balance.user.email === this.props.user.email)[0];
+            balances = balances.filter((balance) => balance.user.email !== this.props.user.email);
+            canLeave = getRoundedAmount(usersBalance.totalAmount) === 0;
+        }
         return <>
-            {this.state.group && <Card>
-                <GroupHeader data={{ group: this.state.group }} reloadHomeView={this.props.reloadHomeView} reloadGroupView={this.forceReload.bind(this)} />
-                <TransactionView transactions={this.state.transactions} />
-            </Card>}
+            <Container fluid={true}>
+                <Row>
+                    <Col sm={8}>
+                        {this.state.group && <Card>
+                            <GroupHeader data={{ group: this.state.group }} canLeave={canLeave} leaveGroup={this.leaveGroup.bind(this)} reloadHomeView={this.props.reloadHomeView} reloadGroupView={this.forceReload.bind(this)} />
+                            <TransactionView transactions={this.state.transactions} />
+                        </Card>}
+                    </Col>
+                    <Col sm={2}>
+                        {balances && balances.length > 0 && balances.map((balance) => <UserBalanceView data={balance} />)}
+                    </Col>
+                </Row>
+            </Container>
         </>;
     }
+}
+
+const UserBalanceView = (props) => {
+    const color = props.data.totalAmount === 0 ? 'orange' : (props.data.totalAmount > 0 ? 'green' : 'red');
+    const suffix = props.data.totalAmount === 0 ? "settled up" :
+        (props.data.totalAmount > 0 ? ' gets back ' : ' owes ');
+    return (
+        <ListGroup.Item key={props.data.user.email}>
+            <UserAvatar user={props.data.user} />
+            <div style={{ marginLeft: '3rem', marginTop: '-1rem' }} className='h5'>
+                <span style={{ color }}>
+                    {suffix}
+                    {props.data.totalAmount !== 0 && (
+                        <LocalizedAmount
+                            amount={props.data.totalAmount}
+                            currency={props.data.user.default_currency}
+                        />
+                    )}
+                </span>
+            </div>
+        </ListGroup.Item>
+    );
 }
 
 const GroupHeader = (props) => {
@@ -79,11 +132,12 @@ const GroupHeader = (props) => {
         <Card.Header>
             <Container>
                 <Row>
-                    <Col sm={10}><div style={{ display: 'flex', alignItems: 'baseline' }}><h3><GroupAvatar group={props.data.group} /> &nbsp; {props.data.group.name}</h3> &nbsp; <GrEdit onClick={openUpdateGroupForm} />
+                    <Col sm={9}><div style={{ display: 'flex', alignItems: 'baseline' }}><h3><GroupAvatar group={props.data.group} /> &nbsp; {props.data.group.name}</h3> &nbsp; <GrEdit onClick={openUpdateGroupForm} />
                         {isGroupUpdateOpen ? <GroupCreateOrUpdateModal group={props.data.group} reloadHomeView={() => { props.reloadHomeView(); props.reloadGroupView(); }} closeModal={closeUpdateGroupForm} isOpen={isGroupUpdateOpen} /> : null}</div></Col>
-                    <Col sm={2}> <Container><Button onClick={openAddExpenseForm}>ADD EXPENSE</Button>
+                    <Col sm={3}> <div style={{ display: 'flex', alignItems: 'baseline' }}><Button onClick={openAddExpenseForm}>ADD EXPENSE</Button>
                         {isAddExpenseOpen ? <ConnectedAddExpenseModal reloadGroupView={props.reloadGroupView} group={props.data.group} closeModal={closeAddExpenseForm} isOpen={isAddExpenseOpen} /> : null}
-                    </Container></Col>
+                        {props.canLeave && <Button style={{ marginLeft: '2rem' }} variant="danger" onClick={props.leaveGroup}>LEAVE GROUP</Button>}
+                    </div></Col>
                 </Row>
             </Container>
         </Card.Header >
@@ -129,15 +183,12 @@ function AddExpenseModal(props) {
             },
         };
 
-        console.log("transaction request " + JSON.stringify(data));
         try {
             const response = await axios.post('http://localhost:3001/transaction/create', data);
-            console.log("transactin response " + JSON.stringify(response));
             props.reloadGroupView();
             props.closeModal();
 
         } catch (error) {
-            console.log("Error " + JSON.stringify(error));
             const data = error.response.data;
             const msg = Array.isArray(data) ? data.map(d => d.message) : ["Some error occured, please try again."];
             setErrorMsg(msg);
@@ -179,11 +230,11 @@ function AddExpenseModal(props) {
                             <Col sm={3}>
                                 <Row>
                                     <Form.Group controlId="formDescription">
-                                        <Form.Control type="text" style={{ 'font-size': '24px', width: '29.5rem' }} placeholder="Description" onChange={handleDescChange} />
+                                        <Form.Control type="text" style={{ fontSize: '24px', width: '29.5rem' }} placeholder="Description" onChange={handleDescChange} />
                                     </Form.Group>
                                 </Row>
                                 <Row>
-                                    <CurrencyInput prefix="$" value={amount} onChange={handleAmountChange} style={{ 'font-size': '32px', width: '29.5rem', border: '1px solid #ccc', 'border-radius': '4px', color: '#5555555' }} />
+                                    <CurrencyInput prefix="$" value={amount} onChange={handleAmountChange} style={{ fontSize: '32px', width: '29.5rem', border: '1px solid #ccc', 'border-radius': '4px', color: '#5555555' }} />
                                 </Row>
                             </Col>
                         </Row>
