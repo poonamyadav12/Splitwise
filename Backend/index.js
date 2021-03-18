@@ -1,15 +1,15 @@
 //import the require dependencies
-import express from 'express';
-var app = express();
 import { json, urlencoded } from 'body-parser';
-import session from 'express-session';
 //var cookieParser = require('cookie-parser');
 import cors from 'cors';
-import { createUser, getUsersBySearchString, updateExistingUser, validateLogin } from './apis/user_api';
-import { createOrUpdateGroup, getAllGroupsForUser, getGroupDetails, leaveGroup } from './apis/group_api';
-import { createTransaction, getAllTransactionsForFriend, getAllTransactionsForGroup, getAllTransactionsForUser, getTransactionsByUserId, settleTransactions } from './apis/transactions_api';
+import express from 'express';
+import session from 'express-session';
 import { getActivities } from './apis/activity_api';
+import { createOrUpdateGroup, getAllGroupsForUser, getGroupDetails, leaveGroup } from './apis/group_api';
 import { uploadImage } from './apis/image_upload';
+import { createTransaction, getAllTransactionsForFriend, getAllTransactionsForGroup, getAllTransactionsForUser, settleTransactions } from './apis/transactions_api';
+import { createUser, getUsersBySearchString, updateExistingUser, validateLogin } from './apis/user_api';
+var app = express();
 
 app.set('view engine', 'ejs');
 
@@ -86,3 +86,5 @@ app.get('/user/transactions', getAllTransactionsForUser);
 app.listen(3001);
 
 console.log("Server Listening on port 3001");
+
+export default app;

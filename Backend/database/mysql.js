@@ -2,7 +2,7 @@ var mysql = require('mysql');
 const { DB_USERNAME, DB_PASSWORD, DB_NAME, CLOUD_SQL_CONNECTION_NAME, DB_HOST } = require("./constants");
 
 const dbConfig = {
-    connectionLimit: 10, // default 10
+    connectionLimit: 20, // default 10
     host: DB_HOST,
     user: DB_USERNAME,
     password: DB_PASSWORD,
@@ -66,7 +66,7 @@ export const query = (sql, binding) => {
 export function getConnection() {
     const options =
     {
-        host: "35.193.109.48", //IP address of my Cloud SQL Server
+        host: "127.0.0.1", //IP address of my Cloud SQL Server
         user: 'root',
         password: 'poonam2802',
         database: DB_NAME

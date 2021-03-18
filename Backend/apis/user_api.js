@@ -10,11 +10,13 @@ export async function createUser(req, res) {
     ).validate(req.body);
 
     if (error) {
+        
         res.status(400).send(error.details);
         return;
     }
 
     const user = value.user;
+    console.log("User Creation ", JSON.stringify(user));
     let conn;
     try {
         conn = await connection();

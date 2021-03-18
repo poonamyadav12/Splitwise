@@ -1,4 +1,4 @@
-import { connection, getConnection, getPool } from '../database/mysql.js';
+import { connection, getConnection } from '../database/mysql.js';
 import { groupschema } from '../dataschema/group_schema.js';
 import { txnschema } from '../dataschema/transaction_schema.js';
 import { insertIfNotExist, getUserById } from './user_api.js';
