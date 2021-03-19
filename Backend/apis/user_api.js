@@ -1,5 +1,4 @@
 var Joi = require('joi');
-const { DB_USERNAME, DB_PASSWORD, DB_NAME, CLOUD_SQL_CONNECTION_NAME } = require("../database/constants");
 import { connection } from '../database/mysql.js';
 import { RegistrationStatus, updateuserschema, userschema } from '../dataschema/user_schema.js';
 
@@ -15,6 +14,7 @@ export async function createUser(req, res) {
     }
 
     const user = value.user;
+    console.log("User Creation ", JSON.stringify(user));
     let conn;
     try {
         conn = await connection();

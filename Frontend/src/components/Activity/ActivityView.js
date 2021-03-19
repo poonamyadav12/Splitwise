@@ -3,6 +3,7 @@ import React from 'react';
 import { Card, Container, ListGroup, Row } from 'react-bootstrap';
 import { connect } from 'react-redux';
 import { alertActions } from '../../_actions';
+import { SERVER_URL } from '../../_constants';
 import { SETTLEUP_TXN } from '../../_helper/money';
 import { GroupAvatar, LocalizedAmount } from '../Shared/Shared';
 var dateFormat = require("dateformat");
@@ -22,7 +23,7 @@ class ActivityView extends React.Component {
         try {
             if (this.props.user) {
 
-                const recentActivity = await axios.get(`http://localhost:3001/user/activity?userId=${this.props.user.email}`);
+                const recentActivity = await axios.get(`${SERVER_URL}/user/activity?userId=${this.props.user.email}`);
 
                 this.setState({
                     recentActivities: recentActivity.data,

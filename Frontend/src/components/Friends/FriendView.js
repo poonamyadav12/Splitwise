@@ -3,6 +3,7 @@ import React from 'react';
 import { Card, Col, Container, Row } from 'react-bootstrap';
 import { connect } from 'react-redux';
 import { alertActions } from '../../_actions';
+import { SERVER_URL } from '../../_constants';
 import { calculateDebt } from '../../_helper/debtcalculator';
 import { getRoundedAmount } from '../../_helper/money';
 import { LocalizedAmount, UserAvatar } from '../Shared/Shared';
@@ -25,7 +26,7 @@ class FriendView extends React.Component {
         try {
             if (this.props.friend) {
 
-                const friendTxn = await axios.get(`http://localhost:3001/transaction/friend?friendId=${this.props.friend.email}&userId=${this.props.user.email}`);
+                const friendTxn = await axios.get(`${SERVER_URL}/transaction/friend?friendId=${this.props.friend.email}&userId=${this.props.user.email}`);
 
                 this.setState({
                     transactions: friendTxn.data,

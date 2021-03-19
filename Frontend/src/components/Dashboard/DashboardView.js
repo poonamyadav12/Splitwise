@@ -4,6 +4,7 @@ import { Button, Card, Col, Container, ListGroup, Row, Table } from 'react-boots
 import { connect } from 'react-redux';
 import { Link } from 'react-router-dom';
 import { alertActions } from '../../_actions';
+import { SERVER_URL } from '../../_constants';
 import { calculateDebtPerFriend } from '../../_helper/debtcalculator';
 import { getRoundedAmount } from '../../_helper/money';
 import { LocalizedAmount, UserAvatar } from '../Shared/Shared';
@@ -25,7 +26,7 @@ class DashboardView extends React.Component {
   async fetchData() {
     try {
       if (this.props.user) {
-        const transactions = await axios.get(`http://localhost:3001/user/transactions?userId=${this.props.user.email}`);
+        const transactions = await axios.get(`${SERVER_URL}/user/transactions?userId=${this.props.user.email}`);
         this.setState({
           transactions: transactions.data,
         });
@@ -48,46 +49,97 @@ class DashboardView extends React.Component {
     const negativeFriendBalances = calculatedDebt.per_friend.filter((f) => getRoundedAmount(f.total) < 0);
     const positiveFriendBalances = calculatedDebt.per_friend.filter((f) => getRoundedAmount(f.total) > 0);
 
-    return <>
-      <Card>
-        <Container fluid={true}>
-          <Table striped bordered hover>
-            <thead>
-              <tr>
-                <th>Total balance</th>
-                <th>You owe</th>
-                <th>You are owed</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td><h4 style={{ color: calculatedDebt.totalAmount >= 0 ? 'green' : 'red' }}>
-                  <LocalizedAmount amount={calculatedDebt.total} currency={this.props.user.default_currency} />{'*'}
-                </h4></td>
-                <td><h4 style={{ color: 'red' }}>
-                  <LocalizedAmount amount={calculatedDebt.owed} currency={this.props.user.default_currency} />{'*'}
-                </h4></td>
-                <td><h4 style={{ color: 'green' }}>
-                  <LocalizedAmount amount={calculatedDebt.lent} currency={this.props.user.default_currency} />{'*'}
-                </h4></td>
-              </tr>
-            </tbody>
-          </Table>
-          <Row style={{ height: "80vh" }} >
-            <Col sm={6} style={{ height: "90vh", borderRight: "1px solid grey" }}>
-              <h3>YOU OWE</h3>
-              <ListGroup>
-                {negativeFriendBalances.length > 0 ? negativeFriendBalances.map((friendBalance) => <BalanceView data={friendBalance} user={this.props.user} reloadDashboardView={this.forceReload.bind(this)} setFriendView={this.props.setFriendView} setGroupView={this.props.setGroupView} />) : null}
-              </ListGroup></Col>
-            <Col sm={6}>
-              <h3>YOU ARE OWED</h3>
-              <ListGroup>
-                {positiveFriendBalances.length > 0 ? positiveFriendBalances.map((friendBalance) => <BalanceView data={friendBalance} user={this.props.user} reloadDashboardView={this.forceReload.bind(this)} setFriendView={this.props.setFriendView} setGroupView={this.props.setGroupView} />) : null}
-              </ListGroup></Col>
-          </Row>
-        </Container>
-      </Card>
-    </>;
+    return (
+      <>
+        <Card>
+          <Container fluid={true}>
+            <Table striped bordered hover>
+              <thead>
+                <tr>
+                  <th>Total balance</th>
+                  <th>You owe</th>
+                  <th>You are owed</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>
+                    <h4
+                      style={{
+                        color:
+                          calculatedDebt.totalAmount >= 0 ? 'green' : 'red',
+                      }}
+                    >
+                      <LocalizedAmount
+                        amount={calculatedDebt.total}
+                        doNotPrintAbs={true}
+                        currency={this.props.user.default_currency}
+                      />
+                      {'*'}
+                    </h4>
+                  </td>
+                  <td>
+                    <h4 style={{ color: 'red' }}>
+                      <LocalizedAmount
+                        amount={calculatedDebt.owed}
+                        currency={this.props.user.default_currency}
+                      />
+                      {'*'}
+                    </h4>
+                  </td>
+                  <td>
+                    <h4 style={{ color: 'green' }}>
+                      <LocalizedAmount
+                        amount={calculatedDebt.lent}
+                        currency={this.props.user.default_currency}
+                      />
+                      {'*'}
+                    </h4>
+                  </td>
+                </tr>
+              </tbody>
+            </Table>
+            <Row style={{ height: '80vh' }}>
+              <Col
+                sm={6}
+                style={{ height: '90vh', borderRight: '1px solid grey' }}
+              >
+                <h3>YOU OWE</h3>
+                <ListGroup>
+                  {negativeFriendBalances.length > 0
+                    ? negativeFriendBalances.map((friendBalance) => (
+                      <BalanceView key={friendBalance.friend.email}
+                        data={friendBalance}
+                        user={this.props.user}
+                        reloadDashboardView={this.forceReload.bind(this)}
+                        setFriendView={this.props.setFriendView}
+                        setGroupView={this.props.setGroupView}
+                      />
+                    ))
+                    : null}
+                </ListGroup>
+              </Col>
+              <Col sm={6}>
+                <h3>YOU ARE OWED</h3>
+                <ListGroup>
+                  {positiveFriendBalances.length > 0
+                    ? positiveFriendBalances.map((friendBalance) => (
+                      <BalanceView key={friendBalance.friend.email}
+                        data={friendBalance}
+                        user={this.props.user}
+                        reloadDashboardView={this.forceReload.bind(this)}
+                        setFriendView={this.props.setFriendView}
+                        setGroupView={this.props.setGroupView}
+                      />
+                    ))
+                    : null}
+                </ListGroup>
+              </Col>
+            </Row>
+          </Container>
+        </Card>
+      </>
+    );
   }
 }
 

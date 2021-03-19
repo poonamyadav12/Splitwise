@@ -7,6 +7,7 @@ import { Redirect } from 'react-router';
 import { Link } from 'react-router-dom';
 import '../../App.css';
 import { alertActions } from '../../_actions';
+import { SERVER_URL } from '../../_constants';
 import { ActivityView } from '../Activity/ActivityView';
 import { DashboardView } from '../Dashboard/DashboardView';
 import { FriendList } from '../Friends/FriendList';
@@ -42,7 +43,7 @@ class Home extends Component {
     }
 
     fetchData() {
-        axios.get('http://localhost:3001/user/groups?userId=' + this.props.user.email)
+        axios.get(SERVER_URL + '/user/groups?userId=' + this.props.user.email)
             .then((response) => {
                 //update the state with the response data
                 this.setState({

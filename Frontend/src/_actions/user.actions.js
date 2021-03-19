@@ -1,4 +1,4 @@
-import { userConstants } from '../_constants';
+import { SERVER_URL, userConstants } from '../_constants';
 import { alertActions } from './';
 import axios from 'axios';
 import cookie from 'react-cookies';
@@ -22,7 +22,7 @@ function login(username, password) {
         axios.defaults.withCredentials = true;
         //make a post request with the user data
         try {
-            const response = await axios.post('http://localhost:3001/user/login', data);
+            const response = await axios.post(SERVER_URL + '/user/login', data);
             history.push('/login');
             dispatch(success(response.data));
         }
@@ -49,7 +49,7 @@ function register(data) {
     return async dispatch => {
         dispatch(request(data));
         try {
-            const response = await axios.post('http://localhost:3001/user/signup', data);
+            const response = await axios.post(SERVER_URL + '/user/signup', data);
             dispatch(success(response.data));
             history.push('/signup');
         } catch (error) {
@@ -70,7 +70,7 @@ function update(data) {
     return async dispatch => {
         dispatch(request(data));
         try {
-            const response = await axios.put('http://localhost:3001/user/update', data);
+            const response = await axios.put(SERVER_URL + '/user/update', data);
             dispatch(success(response.data));
             dispatch(alertActions.success('User updated successfully'));
         } catch (error) {

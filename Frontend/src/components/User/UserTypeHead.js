@@ -3,8 +3,9 @@ import { useState } from 'react';
 import { ListGroup } from 'react-bootstrap';
 import { AsyncTypeahead } from 'react-bootstrap-typeahead';
 import { connect } from 'react-redux';
+import { SERVER_URL } from '../../_constants';
 
-const SEARCH_URI = 'http://localhost:3001/user/search';
+const SEARCH_URI =SERVER_URL+ '/user/search';
 
 function UserTypeHead(props) {
   const [isLoading, setIsLoading] = useState(false);

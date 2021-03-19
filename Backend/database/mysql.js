@@ -1,13 +1,15 @@
 var mysql = require('mysql');
-const { DB_USERNAME, DB_PASSWORD, DB_NAME, CLOUD_SQL_CONNECTION_NAME, DB_HOST } = require("./constants");
+const dotenv = require('dotenv');
+dotenv.config();
 
 const dbConfig = {
-    connectionLimit: 10, // default 10
-    host: DB_HOST,
-    user: DB_USERNAME,
-    password: DB_PASSWORD,
-    database: DB_NAME
+    connectionLimit: 20,
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME
 };
+
 const pool = mysql.createPool(dbConfig);
 export const connection = () => {
     return new Promise((resolve, reject) => {
@@ -62,30 +64,3 @@ export const query = (sql, binding) => {
         });
     });
 };
-
-export function getConnection() {
-    const options =
-    {
-        host: "35.193.109.48", //IP address of my Cloud SQL Server
-        user: 'root',
-        password: 'poonam2802',
-        database: DB_NAME
-    };
-    return mysql.createConnection(options);
-}
-
-// Set up a variable to hold our connection pool.
-// let pool;
-
-// export async function getPool() {
-//     if (pool) {
-//         return next();
-//     }
-//     try {
-//         pool = await createPool();
-//         next();
-//     } catch (err) {
-//         console.log(err);
-//         return next(err);
-//     }
-// }

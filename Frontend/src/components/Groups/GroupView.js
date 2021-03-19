@@ -5,6 +5,7 @@ import CurrencyInput from 'react-currency-input';
 import { GrEdit } from 'react-icons/gr';
 import { connect } from 'react-redux';
 import { alertActions } from '../../_actions';
+import { SERVER_URL } from '../../_constants';
 import { calculateDebtForAGroup } from '../../_helper/debtcalculator';
 import { getRoundedAmount } from '../../_helper/money';
 import { AlertMessages } from '../Alert/Alert';
@@ -28,8 +29,8 @@ class GroupView extends React.Component {
         try {
             if (this.props.groupId) {
                 const [groupRes, txnRes] = await Promise.all([
-                    axios.get('http://localhost:3001/group/get?groupId=' + this.props.groupId),
-                    axios.get('http://localhost:3001/group/transactions?groupId=' + this.props.groupId),
+                    axios.get(SERVER_URL + '/group/get?groupId=' + this.props.groupId),
+                    axios.get(SERVER_URL + '/group/transactions?groupId=' + this.props.groupId),
                 ]);
                 this.setState({
                     group: groupRes.data,
@@ -48,7 +49,7 @@ class GroupView extends React.Component {
             userId: this.props.user.email,
         };
         try {
-            const response = await axios.post('http://localhost:3001/group/leave', data);
+            const response = await axios.post(SERVER_URL + '/group/leave', data);
 
             this.props.reloadHomeView();
             this.props.setDashboardView();
@@ -184,7 +185,7 @@ function AddExpenseModal(props) {
         };
 
         try {
-            const response = await axios.post('http://localhost:3001/transaction/create', data);
+            const response = await axios.post(SERVER_URL + '/transaction/create', data);
             props.reloadGroupView();
             props.closeModal();
 
