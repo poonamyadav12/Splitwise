@@ -34,7 +34,7 @@ export const GroupAvatar = (props) => <Avatar avatar={props.group.avatar} defaul
 
 const LocalizedAmount = (props) => {
   const destinationCurrencyCode = props.user.default_currency;
-  const convertedAmount = convertAmount(Math.abs(props.amount), props.currency || 'USD', destinationCurrencyCode);
+  const convertedAmount = convertAmount(props.doNotPrintAbs ? props.amount : Math.abs(props.amount), props.currency || 'USD', destinationCurrencyCode);
   const formattedAmount = formatMoney(convertedAmount, destinationCurrencyCode);
   return <b>{formattedAmount}</b>;
 }

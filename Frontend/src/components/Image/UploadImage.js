@@ -3,6 +3,7 @@ import React from 'react';
 import AvatarEditor from 'react-avatar-editor';
 import { Button, Col, Container, Form, Row } from 'react-bootstrap';
 import Dropzone from 'react-dropzone';
+import { SERVER_URL } from '../../_constants';
 import { getDefaultUserImage } from '../../_constants/avatar';
 
 export class UploadImage extends React.Component {
@@ -22,7 +23,7 @@ export class UploadImage extends React.Component {
         try {
             var formData = new FormData();
             formData.append("image", this.state.image);
-            const response = await axios.post('http://localhost:3001/image-upload', formData, {
+            const response = await axios.post(SERVER_URL + '/image-upload', formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data'
                 }

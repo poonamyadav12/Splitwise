@@ -1,5 +1,4 @@
 var Joi = require('joi');
-const { DB_USERNAME, DB_PASSWORD, DB_NAME, CLOUD_SQL_CONNECTION_NAME } = require("../database/constants");
 import { connection } from '../database/mysql.js';
 import { RegistrationStatus, updateuserschema, userschema } from '../dataschema/user_schema.js';
 
@@ -10,7 +9,6 @@ export async function createUser(req, res) {
     ).validate(req.body);
 
     if (error) {
-        
         res.status(400).send(error.details);
         return;
     }

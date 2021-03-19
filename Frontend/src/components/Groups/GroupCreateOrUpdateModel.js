@@ -4,6 +4,7 @@ import { Button, Card, Col, Container, Form, Modal, Row } from 'react-bootstrap'
 import { connect } from 'react-redux';
 import '../../App.css';
 import { alertActions } from '../../_actions';
+import { SERVER_URL } from '../../_constants';
 import { getDefaultGroupImage } from '../../_constants/avatar';
 import { AlertMessages } from '../Alert/Alert';
 import { UploadImage } from '../Image/UploadImage';
@@ -40,7 +41,7 @@ function GroupCreateOrUpdateModal(props) {
     };
 
     try {
-      const response = await axios.post('http://localhost:3001/group/createOrUpdate', data);
+      const response = await axios.post(SERVER_URL + '/group/createOrUpdate', data);
       props.reloadHomeView();
       props.closeModal();
 

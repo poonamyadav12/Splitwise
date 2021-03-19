@@ -39,7 +39,7 @@ function SettleUpModal(props) {
     );
 
     try {
-      const response = await axios.post('http://localhost:3001/transactions/settle', settlementTxns);
+      const response = await axios.post(SERVER_URL + '/transactions/settle', settlementTxns);
       await props.reloadDashboardView();
       props.closeModal();
     } catch (error) {
