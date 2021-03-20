@@ -6,10 +6,14 @@ import renderer from 'react-test-renderer'
 import React from 'react';
 import { fireEvent, render, screen } from '../../../test-utils';
 import { GroupCreateOrUpdateModalForTest } from '../GroupCreateOrUpdateModel';
+import ReactDOM from 'react-dom';
 
 const server = setupServer()
 
-beforeAll(() => server.listen())
+beforeAll(() => {
+
+  server.listen()
+})
 afterEach(() => server.resetHandlers())
 afterAll(() => server.close())
 
@@ -44,12 +48,6 @@ const group = {
   group_join_status: ['JOINED', 'JOINED'],
 };
 
-test('renders correctly', () => {
-  const tree = renderer
-    .create(<GroupCreateOrUpdateModalForTest user={user1} />)
-    .toJSON();
-  expect(tree).toMatchSnapshot();
-});
 
 test('displays group update modal page and makes API call', async () => {
   mockAxios.post.mockResolvedValue({
@@ -136,3 +134,12 @@ test('displays group create modal page and user cancels the changes', async () =
   }, 100);
 });
 
+test('renders correctly', () => {
+  ReactDOM.createPortal = jest.fn((element, node) => {
+    return element
+  });
+  const tree = renderer
+    .create(<GroupCreateOrUpdateModalForTest user={user1} group={group} isOpen={true} />)
+    .toJSON();
+  expect(tree).toMatchSnapshot();
+});

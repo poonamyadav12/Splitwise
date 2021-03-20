@@ -4,9 +4,9 @@ import mockAxios from "axios";
 import { setupServer } from 'msw/node';
 import React from 'react';
 import { fireEvent, render, screen } from '../../../test-utils';
-import { Signup } from '../Signup';
+import { Signup, SignupForTest } from '../Signup';
 import renderer from 'react-test-renderer';
-import { BrowserRouter } from 'react-router-dom';
+import { BrowserRouter, MemoryRouter } from 'react-router-dom';
 
 
 const server = setupServer();
@@ -60,7 +60,7 @@ test('displays signup page and makes API call', async () => {
 
 test('renders correctly', () => {
   const tree = renderer
-    .create(<BrowserRouter><Signup /></BrowserRouter>)
+    .create(<SignupForTest user={null} />)
     .toJSON();
   expect(tree).toMatchSnapshot();
 });
