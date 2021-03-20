@@ -72,9 +72,9 @@ class FriendView extends React.Component {
 const FriendHeader = (props) => {
     return (
         <Card.Header>
-            <Container>
+            <Container fluid={true}>
                 <Row>
-                    <Col sm={12}><UserAvatar user={props.data.friend} /></Col>
+                    <Col sm={12} className="h4"><UserAvatar user={props.data.friend} /></Col>
                 </Row>
             </Container>
         </Card.Header >

@@ -1,14 +1,14 @@
 import { v4 as uuidv4 } from 'uuid';
 import { connection } from '../database/mysql.js';
 import { ActivityType } from '../dataschema/activity_schema.js';
-import { txnschema } from '../dataschema/transaction_schema.js';
+import { createtxnschema, updatetxnschema } from '../dataschema/transaction_schema.js';
 import { insertActivity } from './activity_api.js';
 var Joi = require('joi');
 
 export async function createTransaction(req, res) {
     console.log("Inside create txn post Request");
     const { error, value } = Joi.object().keys(
-        { transaction: txnschema.required(), }
+        { transaction: createtxnschema.required(), }
     ).validate(req.body);
     if (error) {
         res.status(400).send(error.details);
@@ -45,10 +45,47 @@ export async function createTransaction(req, res) {
     }
 }
 
+export async function updateTransactions(req, res) {
+    console.log("Inside update txn post Request");
+    const { error, value } = Joi.object().keys(
+        { transaction: updatetxnschema.required(), }
+    ).validate(req.body);
+    if (error) {
+        res.status(400).send(error.details);
+        return;
+    }
+    const transaction = value.transaction;
+
+    const stmt = 'UPDATE Transactions SET TransactionInfo=? WHERE TransactionId=?';
+    let conn;
+    try {
+        conn = await connection();
+        await conn.beginTransaction();
+        await conn.query(stmt, [JSON.stringify(transaction), transaction.id]);
+        await conn.commit();
+
+        res.status(200).send(transaction).end();
+    } catch (err) {
+        await conn.rollback();
+        console.log(err);
+        res
+            .status(500)
+            .send(
+                {
+                    code: err.code,
+                    msg: 'Unable to successfully update the txn! Please check the application logs for more details.'
+                }
+            )
+            .end();
+    } finally {
+        conn && conn.release();
+    }
+}
+
 export async function settleTransactions(req, res) {
     console.log("Inside settle txn post Request");
     const { error, value } = Joi.object().keys({
-        transactions: Joi.array().items(txnschema)
+        transactions: Joi.array().items(createtxnschema)
     }).validate(req.body);
     if (error) {
         res.status(400).send(error.details);

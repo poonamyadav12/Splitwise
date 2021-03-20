@@ -4,44 +4,36 @@ import { Button, Col, Container, Modal, Row } from 'react-bootstrap';
 import { connect } from 'react-redux';
 import { alertActions } from '../../_actions';
 import { SERVER_URL } from '../../_constants';
-import { getRoundedAmount, SETTLEUP_TXN } from '../../_helper/money';
+import { SETTLEUP_TXN } from '../../_helper/money';
 import { AlertMessages } from '../Alert/Alert';
 import { LocalizedAmount } from '../Shared/Shared';
 var _ = require('lodash');
 
 
-function SettleUpModal(props) {
+function PerFriendSettleUpModal(props) {
   const [errorMsg, setErrorMsg] = useState([]);
+
+  const [payer, payee] = props.total < 0 ? [props.friend, props.user] : [props.user, props.friend];
 
   async function handleSubmit(e) {
     e.preventDefault();
     const settlementTxns = JSON.parse(
       JSON.stringify({
-        transactions:
-          _(props.data.per_group)
-            .filter((g) => getRoundedAmount(g.total))
-            .map((groupBalance) => {
-              const [payer, payee] =
-                groupBalance.total > 0
-                  ? [props.data.friend, props.user]
-                  : [props.user, props.data.friend];
-              return {
-                from: payer.email,
-                to: [payee.email],
-                amount: Math.abs(groupBalance.total),
-                currency_code: props.user.default_currency,
-                group_id: groupBalance.group.id,
-                description: `Settle up for ${groupBalance.group.name}`,
-                type: SETTLEUP_TXN,
-              };
-            })
-      }
-      )
+        transactions: [{
+          from: payer.email,
+          to: [payee.email],
+          amount: Math.abs(props.total),
+          currency_code: props.friend.default_currency,
+          group_id: props.group.id,
+          description: `Settle up in ${props.group.name}`,
+          type: SETTLEUP_TXN,
+        }]
+      })
     );
 
     try {
       const response = await axios.post(SERVER_URL + '/transactions/settle', settlementTxns);
-      await props.reloadDashboardView();
+      await props.reloadGroupView();
       props.closeModal();
     } catch (error) {
       const data = error?.response?.data;
@@ -49,8 +41,6 @@ function SettleUpModal(props) {
       setErrorMsg(msg);
     }
   }
-
-  const [payer, payee] = props.data.total > 0 ? [props.data.friend, props.user] : [props.user, props.data.friend];
 
   return (
     <>
@@ -79,7 +69,7 @@ function SettleUpModal(props) {
                   <h3><b>{payer.first_name}</b> {' to '} <b>{payee.first_name}</b></h3>
                 </Row>
                 <Row>
-                  <h2><LocalizedAmount amount={Math.abs(props.data.total)} currency={props.user.default_currency} /></h2>
+                  <h2><LocalizedAmount amount={Math.abs(props.total)} currency={props.friend.default_currency} /></h2>
                 </Row>
               </Col>
             </Row>
@@ -106,5 +96,5 @@ const actionCreators = {
   clearAlert: alertActions.clear,
 };
 
-const connectedSettleUpModal = connect(mapState, actionCreators)(SettleUpModal);
-export { connectedSettleUpModal as SettleUpModal };
+const connectedPerFriendSettleUpModal = connect(mapState, actionCreators)(PerFriendSettleUpModal);
+export { connectedPerFriendSettleUpModal as PerFriendSettleUpModal };

@@ -4,6 +4,7 @@ import { connect } from 'react-redux';
 import { Link } from 'react-router-dom';
 import { userActions } from '../../_actions';
 import { ProfileAvatar } from '../Shared/Shared';
+import { GrGroup } from 'react-icons/gr';
 
 //create the Navbar Component
 class Navbar extends Component {
@@ -23,7 +24,7 @@ class Navbar extends Component {
           <nav className='navbar navbar-inverse'>
             <div className='container-fluid'>
               <div className='navbar-header'>
-                <Link to="/home" className='navbar-brand'>
+                <Link to="/" className='navbar-brand'>
                   Splitwise App
                     </Link>
               </div>
@@ -40,29 +41,36 @@ class Navbar extends Component {
               )}
               <ul className='nav navbar-nav navbar-right'>
                 {this.props.user ? (
-                  <li>
-                    <NavDropdown
-                      title={
-                        <ProfileAvatar
-                          user={this.props.user}
-                          textColor={'white'}
-                        />
-                      }
-                      id='basic-nav-dropdown'
-                    >
-                      <ListGroup.Item
-                        style={{ backgroundColor: 'lightgray' }}
+                  <>
+                    <li>
+                      <Link to='/groups'>
+                        My groups
+                      </Link>
+                    </li>
+                    <li>
+                      <NavDropdown
+                        title={
+                          <ProfileAvatar
+                            user={this.props.user}
+                            textColor={'white'}
+                          />
+                        }
+                        id='basic-nav-dropdown'
                       >
-                        <Link to='/profile'>Profile</Link>
-                      </ListGroup.Item>
-                      <ListGroup.Item
-                        style={{ backgroundColor: 'lightgray' }}
-                        onClick={this.handleLogout}
-                      >
-                        <Link to='#'>Logout</Link>
-                      </ListGroup.Item>
-                    </NavDropdown>
-                  </li>
+                        <ListGroup.Item
+                          style={{ backgroundColor: 'lightgray' }}
+                        >
+                          <Link to='/profile'>Profile</Link>
+                        </ListGroup.Item>
+                        <ListGroup.Item
+                          style={{ backgroundColor: 'lightgray' }}
+                          onClick={this.handleLogout}
+                        >
+                          <Link to='#'>Logout</Link>
+                        </ListGroup.Item>
+                      </NavDropdown>
+                    </li>
+                  </>
                 ) : (
                   <li>
                     <Link to='/login'>

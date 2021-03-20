@@ -1,6 +1,7 @@
 var Joi = require('joi');
 import { connection } from '../database/mysql.js';
-import { RegistrationStatus, updateuserschema, userschema } from '../dataschema/user_schema.js';
+import { SignupStatus, updateuserschema, userschema } from '../dataschema/user_schema.js';
+const bcrypt = require('bcrypt');
 
 export async function createUser(req, res) {
     console.log("Inside create user post Request");
@@ -42,7 +43,7 @@ export async function createUser(req, res) {
 }
 
 export async function updateExistingUser(req, res) {
-    console.log("Inside update user post Request");
+    console.log("Inside update user post Request", JSON.stringify(req.body));
     const { error, value } = Joi.object().keys(
         { user: updateuserschema.required(), }
     ).validate(req.body);
@@ -69,21 +70,32 @@ export async function updateExistingUser(req, res) {
         }
 
         console.log("current user  " + JSON.stringify(user));
-        console.log('new user password', user.password)
 
-        if (storedUser.password !== user.password) {
-            res.status(500)
-                .send({
-                    code: 'INVALID_PASSWORD',
-                    msg: 'Invalid password.',
-                }
-                ).end();
-            return;
-        }
         if (user.new_password) {
-            user.password = user.new_password;
+            const passwordMatch = await matchPassword(user.password, storedUser.password);
+            if (!passwordMatch) {
+                res.status(500)
+                    .send({
+                        code: 'INVALID_PASSWORD',
+                        msg: 'Invalid password.',
+                    }
+                    ).end();
+                return;
+            }
+            user.password = await hashPassword(user.new_password);
             delete user.new_password;
+        } else {
+            if (storedUser.password !== user.password) {
+                res.status(500)
+                    .send({
+                        code: 'INVALID_PASSWORD',
+                        msg: 'Invalid password.',
+                    }
+                    ).end();
+                return;
+            }
         }
+
         await updateUser(conn, user);
     } catch (err) {
         console.log(err);
@@ -120,7 +132,17 @@ export async function validateLogin(req, res) {
     try {
         conn = await connection();
 
-        const user = await getUserByIdAndPassword(conn, id, password);
+        const user = JSON.parse(await getUserById(conn, id));
+        const passwordMatch = await matchPassword(password, user.password);
+        if (!passwordMatch) {
+            res.status(500)
+                .send({
+                    code: 'INVALID_PASSWORD',
+                    msg: 'Invalid password.',
+                }
+                ).end();
+            return;
+        }
         if (user) {
             res.status(200).cookie('cookie', id, { maxAge: 900000, httpOnly: false, path: '/' }).send(user).end();
 
@@ -138,6 +160,7 @@ export async function validateLogin(req, res) {
 
 async function insertUser(conn, user) {
     const stmt = 'INSERT INTO Users(User) VALUES (?)';
+    user.password = await hashPassword(user.password);
     console.log("Inside insertUser " + JSON.stringify(user));
     await conn.query(stmt, [JSON.stringify(user)]);
 }
@@ -180,7 +203,7 @@ async function getUserByIdAndPassword(conn, userId, password) {
 
 function isUserInvited(user) {
     console.log("isUserInvited: " + JSON.parse(user).registration_status);
-    return (JSON.parse(user).registration_status === RegistrationStatus.INVITED);
+    return (JSON.parse(user).registration_status === SignupStatus.INVITED);
 }
 
 export async function getUsersBySearchString(req, res) {
@@ -225,4 +248,24 @@ async function searchUsers(conn, searchString = "", limit = 20) {
         return JSON.parse(JSON.stringify(result)).map((value) => JSON.parse(value.User));
     }
     return [];
+}
+
+async function hashPassword(password) {
+    const saltRounds = 10;
+    const hashedPassword = await new Promise((resolve, reject) => {
+        bcrypt.hash(password, saltRounds, function (err, hash) {
+            if (err) reject(err)
+            resolve(hash)
+        });
+    })
+    return hashedPassword
+}
+
+export async function matchPassword(newPassword, storedEncryptedPassword) { // updated
+    console.log("Inside match password");
+    console.log("passw1" + newPassword + " password2 " + storedEncryptedPassword);
+    const isSame = await bcrypt.compare(newPassword, storedEncryptedPassword) // updated
+    console.log(isSame) // updated
+    return isSame;
+
 }

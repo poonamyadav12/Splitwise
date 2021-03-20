@@ -28,7 +28,7 @@ export const ProfileAvatar = (props) => (
   </>
 );
 
-export const UserAvatar = (props) => <Avatar avatar={props.user.avatar} defaultAvatar={getDefaultUserImage()} label={props.user.first_name} />;
+export const UserAvatar = (props) => <Avatar avatar={props.user.avatar} defaultAvatar={getDefaultUserImage()} label={props.label || props.user.first_name} />;
 export const UserBalanceAvatar = (props) => <Avatar avatar={props.user.avatar} defaultAvatar={getDefaultUserImage()} />;
 export const GroupAvatar = (props) => <Avatar avatar={props.group.avatar} defaultAvatar={getDefaultGroupImage()} />;
 

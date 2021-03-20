@@ -38,8 +38,22 @@ class Home extends Component {
     componentWillMount() {
         this.props.clearAlert();
     }
+
     componentDidMount() {
+        this.setLocationState();
         if (this.props.user) this.fetchData();
+    }
+
+    setLocationState() {
+        if (this.props?.location?.state) {
+            this.setState(
+                {
+                    viewComponent: this.props?.location?.state?.viewComponent || ViewComponent.DASHBOARD,
+                    groupViewData: this.props?.location?.state?.groupViewData,
+                    friendViewData: this.props?.location?.state?.friendViewData,
+                }
+            );
+        }
     }
 
     fetchData() {
@@ -57,6 +71,7 @@ class Home extends Component {
             });
     }
     reload() {
+        this.setDashboardView();
         this.fetchData();
     }
     openCreateGroupForm() {
@@ -68,37 +83,120 @@ class Home extends Component {
     render() {
         return (
             <>
-                {!this.props.user ? <Redirect to="/login" /> :
+                {!this.props.user ? (
+                    <Redirect to='/' />
+                ) : (
                     <Container fluid>
                         <Row>
                             <Col lg={2}>
                                 <Card style={{ width: '18rem' }}>
                                     <ListGroup>
-                                        <ListGroup.Item style={this.state.viewComponent === ViewComponent.DASHBOARD ? { backgroundColor: 'lightgray' } : null}><Link to={"#"} onClick={() => this.setDashboardView(this.props.user.email)}>DashBoard</Link></ListGroup.Item>
-                                        <ListGroup.Item style={this.state.viewComponent === ViewComponent.RECENTACTIVITYVIEW ? { backgroundColor: 'lightgray' } : null}>
-                                            <Link to={"#"} onClick={() => this.setActivityView(this.props.user.email)}>Recent Activity</Link></ListGroup.Item>
+                                        <ListGroup.Item
+                                            style={
+                                                this.state.viewComponent === ViewComponent.DASHBOARD
+                                                    ? { backgroundColor: 'lightgray' }
+                                                    : null
+                                            }
+                                        >
+                                            <Link
+                                                to={'#'}
+                                                onClick={() =>
+                                                    this.setDashboardView(this.props.user.email)
+                                                }
+                                            >
+                                                DashBoard
+                                            </Link>
+                                        </ListGroup.Item>
+                                        <ListGroup.Item
+                                            style={
+                                                this.state.viewComponent ===
+                                                    ViewComponent.RECENTACTIVITYVIEW
+                                                    ? { backgroundColor: 'lightgray' }
+                                                    : null
+                                            }
+                                        >
+                                            <Link
+                                                to={'#'}
+                                                onClick={() =>
+                                                    this.setActivityView(this.props.user.email)
+                                                }
+                                            >
+                                                Recent Activity
+                                            </Link>
+                                        </ListGroup.Item>
                                     </ListGroup>
                                     <ListGroup>
                                         <ListGroup.Item>
                                             <Container>
-                                                <LinkWithText text='Groups' onClick={() => this.openCreateGroupForm()} label='+ add' link="#" />
-                                                {this.state.isGroupCreateOpen ? <GroupCreateOrUpdateModal reloadHomeView={this.reload.bind(this)} closeModal={() => this.closeCreateGroupForm()} isOpen={this.state.isGroupCreateOpen} /> : null}
+                                                <Container>
+                                                    <Row>
+                                                        <Col sm={1}><Link to='/groups'>Groups</Link>{' '}</Col>
+                                                        <Col sm={1}>
+                                                            <Link onClick={() => this.openCreateGroupForm()} to='#'>
+                                                                <IoMdAdd />
+                                                            </Link>
+                                                        </Col>
+                                                    </Row>
+                                                </Container>
+                                                {this.state.isGroupCreateOpen ? (
+                                                    <GroupCreateOrUpdateModal
+                                                        createMode={true}
+                                                        reloadHomeView={this.reload.bind(this)}
+                                                        closeModal={() => this.closeCreateGroupForm()}
+                                                        isOpen={this.state.isGroupCreateOpen}
+                                                    />
+                                                ) : null}
                                             </Container>
                                         </ListGroup.Item>
-                                        <ListGroup.Item><GroupList focussed={this.state.viewComponent === ViewComponent.GROUPVIEW} selectedId={this.state.groupViewData?.groupId} groups={this.state.groups} setGroupView={this.setGroupView} /></ListGroup.Item>
+                                        <ListGroup.Item>
+                                            <GroupList
+                                                focussed={
+                                                    this.state.viewComponent ===
+                                                    ViewComponent.GROUPVIEW
+                                                }
+                                                selectedId={this.state.groupViewData?.groupId}
+                                                groups={this.state.groups}
+                                                setGroupView={this.setGroupView}
+                                            />
+                                        </ListGroup.Item>
                                     </ListGroup>
                                     <ListGroup>
-                                        <ListGroup.Item><LinkWithText text='Friends' onClick={Object.assign(this.state, { groupId: "23" })} label='+ add' link="#" /></ListGroup.Item>
-                                        <ListGroup.Item><FriendList focussed={this.state.viewComponent === ViewComponent.FRIENDVIEW} selectedId={this.state.friendViewData?.friend} friends={this.state.friends} setFriendView={this.setFriendView} /></ListGroup.Item>
+                                        <ListGroup.Item>
+                                            <LinkWithText
+                                                text='Friends'
+                                                onClick={Object.assign(this.state, {
+                                                    groupId: '23',
+                                                })}
+                                                label='+ add'
+                                                link='#'
+                                            />
+                                        </ListGroup.Item>
+                                        <ListGroup.Item>
+                                            <FriendList
+                                                focussed={
+                                                    this.state.viewComponent ===
+                                                    ViewComponent.FRIENDVIEW
+                                                }
+                                                selectedId={this.state.friendViewData?.friend}
+                                                friends={this.state.friends}
+                                                setFriendView={this.setFriendView}
+                                            />
+                                        </ListGroup.Item>
                                     </ListGroup>
                                 </Card>
                             </Col>
-                            {renderMainView(this.state, this.setGroupView, this.reload.bind(this), this.setFriendView, this.setDashboardView)}
+                            {renderMainView(
+                                this.state,
+                                this.setGroupView,
+                                this.reload.bind(this),
+                                this.setFriendView,
+                                this.setDashboardView
+                            )}
                         </Row>
                     </Container>
-                }
+                )}
             </>
-        )
+        );
     }
 }
 function setDashboardView() {
@@ -143,14 +241,25 @@ function renderMainView(state, setGroupView, reloadHomeView, setFriendView, setD
     }
 }
 
-const ViewComponent = Object.freeze({
+export const ViewComponent = Object.freeze({
     DASHBOARD: 'DASHBOARD',
     GROUPVIEW: 'GROUPVIEW',
     FRIENDVIEW: 'FRIENDVIEW',
     RECENTACTIVITYVIEW: 'RECENTACTIVITYVIEW'
 });
 
-const LinkWithText = (props) => <Container><Row><Col sm={1} >{props.text}&nbsp; </Col><Col sm={1}><Link onClick={() => props.onClick()} to={props.link}><IoMdAdd /></Link></Col></Row></Container>
+const LinkWithText = (props) => (
+    <Container>
+        <Row>
+            <Col sm={1}>{props.text}{' '}</Col>
+            <Col sm={1}>
+                <Link onClick={() => props.onClick()} to={props.link}>
+                    <IoMdAdd />
+                </Link>
+            </Col>
+        </Row>
+    </Container>
+);
 
 function mapState(state) {
     const { user } = state.authentication;

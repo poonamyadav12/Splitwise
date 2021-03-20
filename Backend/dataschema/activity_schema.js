@@ -6,6 +6,7 @@ export const ActivityType = Object.freeze({
     TRANSACTION_DELETED: "TRANSACTION_DELETED",
     MEMBER_ADDED: "MEMBER_ADDED",
     MEMBER_DELETED: "MEMBER_DELETED",
+    MEMBER_JOINED: "MEMBER_JOINED"
 });
 
 export const activitySchema = Joi.object().keys(
@@ -16,6 +17,7 @@ export const activitySchema = Joi.object().keys(
             name: Joi.string().optional()
         }).required(),
         added: Joi.object().optional(),
+        joined: Joi.object().optional(),
         deleted: Joi.object().optional(),
         transaction: Joi.object().optional(),
         type: Joi.string().valid(...Object.values(ActivityType)).required(),
