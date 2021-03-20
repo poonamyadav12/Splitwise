@@ -19,7 +19,7 @@ Build a prototype of Splitwise app. It shoud provide following functionalities
 A MYSQL schema file is created in the `Backend/database/schema.sql`. It can be run to setup the DB. DB name in the database should be SplitwiseDb.
 
 ```
-mysql --host=127.0.0.1  --user=your_user --password=your_password
+mysql --host=127.0.0.1  --user=your_user --password=your_password < path/to/project/Backend/database/schema.sql
 ```
 
 ### Run backend
