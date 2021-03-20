@@ -1,4 +1,5 @@
 import axios from 'axios';
+import _ from 'lodash';
 import React, { useState } from 'react';
 import { Button, Card, Col, Container, Form, Modal, Row } from 'react-bootstrap';
 import { connect } from 'react-redux';
@@ -30,18 +31,18 @@ function GroupCreateOrUpdateModal(props) {
 
   async function handleSubmit(e) {
     e.preventDefault();
-    const data = {
-      group: {
-        id: props && props.group && props.group.id,
-        creator: props.user.email,
-        name,
-        members: members.map((m) => ({ first_name: m.first_name, last_name: m.last_name, email: m.email })),
-        avatar: imageUrl,
-      }
+    let group = {
+      creator: props.group && props.group.creator || props.user.email,
+      name,
+      members: members.map((m) => ({ first_name: m.first_name, last_name: m.last_name, email: m.email, group_join_status:m.group_join_status })),
+      avatar: imageUrl,
     };
 
+    if (props && props.group && props.group.id) {
+      group = { ...group, id: props.group.id };
+    }
     try {
-      const response = await axios.post(SERVER_URL + '/group/createOrUpdate', data);
+      const response = await axios.post(SERVER_URL + (props.createMode ? '/group/create' : '/group/update'), { group });
       props.reloadHomeView();
       props.closeModal();
 

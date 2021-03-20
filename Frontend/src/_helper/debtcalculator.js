@@ -40,7 +40,7 @@ export function calculateDebt(user, transactions, isFriendView = false) {
 export function calculateDebtForAGroup(group, transactions) {
   return JSON.parse(
     JSON.stringify(
-      _(group.members).map((member) => ({
+      _(group.members).filter((member) => member.group_join_status !== "INVITED").map((member) => ({
         user: member,
         ...calculateDebt(member, transactions),
       }))

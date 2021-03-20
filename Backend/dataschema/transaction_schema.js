@@ -5,15 +5,24 @@ export const TransactionStatus = Object.freeze({
     DELETED: "DELETED",
 });
 
-export const txnschema = Joi.object().keys(
+const txnfields = {
+    from: Joi.string().email().required(),
+    to: Joi.array().items(Joi.string().email()).min(1).required(),
+    amount: Joi.number().required(),
+    currency_code: Joi.string().max(3).required().label('Currency code'),
+    group_id: Joi.string().required(),
+    description: Joi.string().required(),
+    status: Joi.string().default(TransactionStatus.ACTIVE),
+    type: Joi.string().default('TRANSACTION'),
+};
+
+export const createtxnschema = Joi.object().keys(
+    txnfields
+);
+
+export const updatetxnschema = Joi.object().keys(
     {
-        from: Joi.string().email().required(),
-        to: Joi.array().items(Joi.string().email()).min(1).required(),
-        amount: Joi.number().required(),
-        currency_code: Joi.string().max(3).required().label('Currency code'),
-        group_id: Joi.string().required(),
-        description: Joi.string().required(),
-        status: Joi.string().default(TransactionStatus.ACTIVE),
-        type: Joi.string().default('TRANSACTION'),
+        ...txnfields,
+        id: Joi.string().required().label('Transaction ID'),
     }
 );

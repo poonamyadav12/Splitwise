@@ -4,11 +4,13 @@ import { connect } from 'react-redux';
 import { Redirect, Route, Switch, withRouter } from 'react-router-dom';
 import { alertActions } from '../_actions';
 import { AlertMessages } from './Alert/Alert';
+import { MyGroups } from './Groups/MyGroups';
 import { Home } from './Home/Home';
 import { Navbar } from './LandingPage/Navbar';
 import { Login } from './Login/Login';
 import { Profile } from './Profile/Profile';
 import { Signup } from './Signup/Signup';
+import { LandingPage } from './LandingPage/LandingPage';
 
 //Create a Main Component
 class Main extends Component {
@@ -32,10 +34,11 @@ class Main extends Component {
                         <Route
                             exact
                             path="/"
-                            render={() => <Redirect to="/home" />}
+                            render={() => <LandingPage />}
                         />
                         <Route exact path="/login" component={Login} />
-                        <Route exact path="/home" component={Home} />
+                        <Route exact path="/groups" component={MyGroups} />
+                        <Route exact path="/home" render={(props) => <Home {...props} />} />
                         <Route exact path="/signup" component={Signup} />
                         <Route exact path="/profile" component={Profile} />
                     </Switch>

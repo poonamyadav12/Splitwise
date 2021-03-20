@@ -36,7 +36,7 @@ export const GroupMemberList = (props) => {
     props.onChange(newMembers);
   }
   function addEmptyMember() {
-    setMembers([...members, {}]);
+    setMembers([...members, { group_join_status: "INVITED", }]);
   }
   function handleDelete(index, e) {
     setMembers(members.filter((member, i) => i !== index));
