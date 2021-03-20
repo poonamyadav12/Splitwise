@@ -45,7 +45,7 @@ export class UploadImage extends React.Component {
 
     render() {
         return (
-            <Col style={{ 'text-align': 'center' }}>
+            <Col style={{ textAlign: 'center' }}>
                 <Form.Group controlId="imageUplaod">
                     <Form.Label><h5>{this.props.label || 'Avatar'}</h5></Form.Label>
                     <Dropzone

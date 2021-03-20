@@ -34,7 +34,7 @@ function GroupCreateOrUpdateModal(props) {
     let group = {
       creator: props.group && props.group.creator || props.user.email,
       name,
-      members: members.map((m) => ({ first_name: m.first_name, last_name: m.last_name, email: m.email, group_join_status:m.group_join_status })),
+      members: members.map((m) => ({ first_name: m.first_name, last_name: m.last_name, email: m.email, group_join_status: m.group_join_status })),
       avatar: imageUrl,
     };
 
@@ -106,4 +106,4 @@ const actionCreators = {
 };
 
 const connectedGroupCreateOrUpdateModal = connect(mapState, actionCreators)(GroupCreateOrUpdateModal);
-export { connectedGroupCreateOrUpdateModal as GroupCreateOrUpdateModal };
+export { connectedGroupCreateOrUpdateModal as GroupCreateOrUpdateModal, GroupCreateOrUpdateModal as GroupCreateOrUpdateModalForTest };

@@ -133,9 +133,9 @@ export async function validateLogin(req, res) {
         conn = await connection();
 
         const user = JSON.parse(await getUserById(conn, id));
-        const passwordMatch = await matchPassword(password, user.password);
+        const passwordMatch = await matchPassword(password, user && user.password || '');
         if (!passwordMatch) {
-            res.status(500)
+            res.status(400)
                 .send({
                     code: 'INVALID_PASSWORD',
                     msg: 'Invalid password.',

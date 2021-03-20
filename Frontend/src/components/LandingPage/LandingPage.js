@@ -38,4 +38,4 @@ function mapState(state) {
 }
 
 const connectedLandingPage = connect(mapState, {})(LandingPage);
-export { connectedLandingPage as LandingPage };
+export { connectedLandingPage as LandingPage, LandingPage as LandingPageForTest };

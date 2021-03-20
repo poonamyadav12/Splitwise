@@ -59,7 +59,7 @@ export const GroupMemberList = (props) => {
                     placeholder="Email" onChange={handleEmailChange.bind(null, index)} />}
               </Form.Group>
             </Col>
-            <Col sm={1} style={{ 'text-align': 'center' }}>
+            <Col sm={1} style={{ textAlign: 'center' }}>
               {!member.initial && <MdRemoveCircleOutline onClick={handleDelete.bind(null, index)} style={{ height: '27px', width: '25px', verticalAlign: 'text-top' }} />}
             </Col>
           </Row>
