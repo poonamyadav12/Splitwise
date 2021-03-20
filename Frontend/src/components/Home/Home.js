@@ -272,5 +272,5 @@ const actionCreators = {
 };
 
 const connectedHome = connect(mapState, actionCreators)(Home);
-export { connectedHome as Home };
+export { connectedHome as Home, Home as HomeForTest };
 

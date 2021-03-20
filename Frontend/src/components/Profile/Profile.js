@@ -124,13 +124,14 @@ class Profile extends Component {
   }
 
   render() {
+    console.log('Here ' + this.props.user);
     return (
       <>
         {!this.props.user && <Redirect to='/login' />}
         {this.props.user &&
           <Container>
             <Row style={{ alignItems: 'center' }}>
-              <Col lg={3} style={{ 'width': '20%', 'margin-top': '3%' }}>
+              <Col lg={3} style={{ 'width': '20%', marginTop: '3%' }}>
                 <img style={{ width: '17rem' }} src="https://assets.splitwise.com/assets/core/logo-square-65a6124237868b1d2ce2f5db2ab0b7c777e2348b797626816400534116ae22d7.svg" alt="Logo" />
               </Col>
               <Col lg={3}>
@@ -243,4 +244,4 @@ const actionCreators = {
 }
 
 const connectedProfilePage = connect(mapState, actionCreators)(Profile);
-export { connectedProfilePage as Profile };
+export { connectedProfilePage as Profile, Profile as ProfileForTest };

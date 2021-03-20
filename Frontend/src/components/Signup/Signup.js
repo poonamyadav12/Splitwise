@@ -3,12 +3,12 @@ import { Button, Card, Col, Container, Form, ListGroup, Row } from 'react-bootst
 import { Typeahead } from 'react-bootstrap-typeahead';
 import { connect } from 'react-redux';
 import { Redirect } from 'react-router';
-import TimezoneSelect from 'react-timezone-select';
 import '../../App.css';
 import { userActions } from '../../_actions';
 import { getDefaultUserImage } from '../../_constants/avatar';
 import { CURRENCY } from '../../_helper/money';
 import { UploadImage } from '../Image/UploadImage';
+import TimezoneSelect from 'react-timezone-select';
 
 //Define a Login Component
 class Signup extends Component {
@@ -119,7 +119,7 @@ class Signup extends Component {
                 {this.props.user && <Redirect to="/home" />}
                 <Container>
                     <Row style={{ alignItems: 'center' }}>
-                        <Col lg={3} style={{ 'width': '20%', 'margin-top': '3%' }}>
+                        <Col lg={3} style={{ 'width': '20%', marginTop: '3%' }}>
                             <img style={{ width: '17rem' }} src="https://assets.splitwise.com/assets/core/logo-square-65a6124237868b1d2ce2f5db2ab0b7c777e2348b797626816400534116ae22d7.svg" alt="Logo" />
                         </Col>
                         <Col lg={3}>
