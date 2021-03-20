@@ -201,5 +201,5 @@ const actionCreators = {
 }
 
 const connectedRegisterPage = connect(mapState, actionCreators)(Signup);
-export { connectedRegisterPage as Signup };
+export { connectedRegisterPage as Signup, Signup as SignupForTest };
 //export Login Component

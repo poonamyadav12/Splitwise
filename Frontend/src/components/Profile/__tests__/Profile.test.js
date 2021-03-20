@@ -16,19 +16,19 @@ afterEach(() => server.resetHandlers())
 afterAll(() => server.close())
 
 let updateValue = {};
-
+const user = {
+  "email": "abc@gmail.com",
+  "first_name": "Michael",
+  "last_name": "Clarke",
+  "password": "Abc@1234",
+  "time_zone": "Asia/Kolkata",
+  "default_currency": "USD",
+  "avatar": "www.example.com",
+};
 const update = (user) => { updateValue = user };
 
 test('displays profile page and makes API call', async () => {
-  const user = {
-    "email": "abc@gmail.com",
-    "first_name": "Michael",
-    "last_name": "Clarke",
-    "password": "Abc@1234",
-    "time_zone": "Asia/Kolkata",
-    "default_currency": "USD",
-    "avatar": "www.example.com",
-  };
+
   mockAxios.post.mockImplementationOnce(() =>
     Promise.resolve({
       data: user
@@ -48,7 +48,7 @@ test('displays profile page and makes API call', async () => {
 
 test('renders correctly', () => {
   const tree = renderer
-    .create(<BrowserRouter><ProfileForTest /></BrowserRouter>)
+    .create(<ProfileForTest user={user} update={update}/>)
     .toJSON();
   expect(tree).toMatchSnapshot();
 });
